@@ -99,8 +99,6 @@ GEM
       rdoc
       reline (>= 0.3.8)
     jwt (2.2.3)
-    jwt_sessions (2.7.2)
-      jwt (>= 2.2.3, < 3)
     loofah (2.21.3)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -196,7 +194,6 @@ DEPENDENCIES
   carrierwave (= 2.1.0)
   debug
   jwt (= 2.2.3)
-  jwt_sessions
   mini_magick (= 4.11.0)
   pg (~> 1.1)
   puma (~> 5.0)

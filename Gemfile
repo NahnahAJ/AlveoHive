@@ -37,7 +37,6 @@ gem "bootsnap", require: false
 # gem "rack-cors"
 
 gem 'jwt', '2.2.3'
-gem 'jwt_sessions'
 gem 'bcrypt', '3.1.7'
 gem 'carrierwave', '2.1.0'
 gem 'mini_magick', '4.11.0'
