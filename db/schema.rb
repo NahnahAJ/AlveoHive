@@ -10,9 +10,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_26_220000) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_03_143424) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "amenities", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "fully_fitted_kitchen"
+    t.boolean "furnishing"
+    t.boolean "standby_generator"
+    t.boolean "internet_connectivity"
+    t.boolean "ac_rooms"
+    t.boolean "refridgerator"
+    t.boolean "cctv_camera"
+    t.boolean "washroom"
+    t.boolean "security_service"
+    t.boolean "tv"
+    t.boolean "gym"
+    t.string "others"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_amenities_on_property_id"
+  end
 
   create_table "articles", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -55,7 +74,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_26_220000) do
     t.integer "number_of_bedrooms"
     t.integer "number_of_bathrooms"
     t.decimal "ratings"
-    t.text "amenities"
     t.string "furnishing"
     t.decimal "size"
     t.decimal "price"
@@ -79,6 +97,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_26_220000) do
     t.string "office_phone"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "user_type"
     t.index ["user_id"], name: "index_user_details_on_user_id"
   end
 
@@ -92,6 +111,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_26_220000) do
     t.index ["username"], name: "index_users_on_username"
   end
 
+  add_foreign_key "amenities", "properties"
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
   add_foreign_key "enquiries", "properties"
