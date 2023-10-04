@@ -46,6 +46,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_03_143424) do
 
   create_table "categories", force: :cascade do |t|
     t.string "name"
+    t.string "parent_category"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name"
@@ -103,7 +104,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_03_143424) do
 
   create_table "users", force: :cascade do |t|
     t.string "username"
-    t.string "password_digest"
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
