@@ -3,6 +3,15 @@ class Property < ApplicationRecord
   belongs_to :category
   has_many :amenities
 
+  has_many_attached :images
+  has_one_attached :video
+
+  validate :validate_image_limit
+  validate :validate_image_size
+  validate :validate_image_types
+
+  validate :validate_video_size
+
 
   scope :filter_by_params, ->(params) {
     result = all
@@ -15,12 +24,20 @@ class Property < ApplicationRecord
     result = result.where(ratings: params[:ratings]) if params[:ratings].present?
     result = result.where(furnishing: params[:furnishing]) if params[:furnishing].present?
     result = result.where(size: params[:size]) if params[:size].present?
-    result = result.where(price: params[:price]) if params[:price].present?
+
+    if params[:price].present?
+      price_range = params[:price].map(&:to_i)
+      result = result.where(price: price_range[0]..price_range[1])
+    end
 
     if params[:amenities].present?
       amenities_conditions = {}
       params[:amenities].each do |amenity, value|
-        amenities_conditions[amenity] = value if Property.column_names.include?(amenity) && Property.type_for_attribute(amenity).type == :boolean
+        if Property.column_names.include?(amenity) && Property.type_for_attribute(amenity).type == :boolean
+          result = result.joins(:amenities).where("amenities.#{amenity} = ?", value)
+        else
+          amenities_conditions[amenity] = value
+        end
       end
       result = result.where(amenities_conditions)
     end
@@ -31,5 +48,38 @@ class Property < ApplicationRecord
 
     result
   }
+
+
+  private
+
+  def validate_image_limit
+    if images.attached? && images.count > 5
+      errors.add(:images, 'cannot be more than 5')
+    end
+  end
+
+  def validate_image_size
+    images.each do |image|
+      if image.byte_size > 5.megabytes
+        errors.add(:images, 'should be less than 5MB')
+      end
+    end
+  end
+
+  def validate_image_types
+    allowed_types = %w[image/jpeg image/jpg image/png]
+
+    images.each do |image|
+      unless allowed_types.include?(image.content_type)
+        errors.add(:images, 'should be JPEG, JPG, or PNG format')
+      end
+    end
+  end
+
+  def validate_video_size
+    if video.attached? && video.byte_size > 60.megabytes
+      errors.add(:video, 'size should be 60MB or less')
+    end
+  end
 
 end

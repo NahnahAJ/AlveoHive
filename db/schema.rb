@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_04_104517) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_10_170642) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -97,18 +97,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_04_104517) do
     t.string "name"
     t.string "location"
     t.string "property_status"
-    t.text "images"
-    t.text "video"
     t.text "property_overview"
     t.integer "number_of_bedrooms"
     t.integer "number_of_bathrooms"
-    t.decimal "ratings"
+    t.decimal "ratings", default: "0.0"
     t.string "furnishing"
     t.decimal "size"
     t.decimal "price"
     t.date "date_listed"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_property_live", default: false
+    t.integer "number_of_ratings", default: 0
+    t.float "latitude", default: 0.0
+    t.float "longitude", default: 0.0
     t.index ["category_id"], name: "index_properties_on_category_id"
     t.index ["user_id"], name: "index_properties_on_user_id"
   end

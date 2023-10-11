@@ -6,6 +6,7 @@ module Api
         #load_and_authorize_resource
 
         # GET /api/v1/categories
+        # for example /api/v1/categories?parent_category={Property or Article}
         def index
           if params[:parent_category].present?
             @categories = Category.where(parent_category: params[:parent_category])
