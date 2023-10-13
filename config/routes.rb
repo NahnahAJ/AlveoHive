@@ -12,34 +12,25 @@ Rails.application.routes.draw do
 
 namespace :api do 
   namespace :v1 do 
-    resources :users, only: [:index, :create, :show, :destroy]
+
+    resources :users, only: [:index, :create, :show, :destroy] do
+      resources :articles, only: [:index], controller: 'articles', action: 'user_articles'
+      resources :enquiries, only: [:index], controller: 'enquiries', action: 'user_enquiries'
+      resources :properties, only: [:index], controller: 'properties', action: 'user_properties'
+    end
+
     resources :user_details, only: [:index, :create, :show, :destroy, :update] do
     resources :profile_pictures, only: [:index, :show]
     end
-    resources :amenities, only: [:index, :create, :show, :destroy]
-  end
-end
-
-endRails.application.routes.draw do
-
-namespace :api do 
-  namespace :v1 do 
-    resources :user_details, only: [:index, :create, :show, :destroy]
 
     resources :amenities, only: [:index, :create, :show, :destroy]
 
-    #resources :articles, only: [:index, :create, :show, :destroy]
     resources :articles do
       collection do
         get 'search', to: 'articles#search_by_title'
       end
     end
 
-    resources :users do
-      resources :articles, only: [:index], controller: 'articles', action: 'user_articles'
-      resources :enquiries, only: [:index], controller: 'enquiries', action: 'user_enquiries'
-      resources :properties, only: [:index], controller: 'properties', action: 'user_properties'
-    end
 
     #resources :categories, only: [:index, :create, :show, :destroy]
     resources :categories do
@@ -85,4 +76,3 @@ namespace :api do
   end
 end
 
-end
