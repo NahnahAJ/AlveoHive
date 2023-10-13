@@ -12,10 +12,9 @@ user_detail = UserDetail.create(
   role: "Developer",
   address: "123 Main St, City, Country",
   country: "Country Name",
-  profile_picture: "profile.jpg",
   company_name: "Example Company",
   mobile_phone: "123-456-7890",
   office_phone: "987-654-3210",
   user_type: "Regular",
-  user_id: user1.id
+  user_id: 1
 )
