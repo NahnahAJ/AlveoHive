@@ -11,8 +11,6 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = false
 
-  config.active_storage.replace_on_assign_to_many = false
-
   # Show full error reports.
   config.consider_all_requests_local = true
 
@@ -55,15 +53,16 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
+  #config.active_storage.replace_on_assign_to_many = false
 
   # TODO: Configure for PRODUCTION as well
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.dig(:development, :email_address),
-    port: Rails.application.credentials.dig(:development, :email_port),
-    domain: Rails.application.credentials.dig(:development, :email_domain),
-    user_name: Rails.application.credentials.dig(:development, :email_user_name),
-    password: Rails.application.credentials.dig(:development, :email_password),
+    address: Rails.application.secrets.email_address,
+    port: Rails.application.secrets.email_port,
+    domain: Rails.application.secrets.email_domain,
+    user_name: Rails.application.secrets.email_user_name,
+    password: Rails.application.secrets.email_password,
     authentication: :login,
     enable_starttls_auto: true,
     ssl: true

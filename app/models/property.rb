@@ -23,11 +23,15 @@ class Property < ApplicationRecord
     result = result.where(number_of_bathrooms: params[:number_of_bathrooms]) if params[:number_of_bathrooms].present?
     result = result.where(ratings: params[:ratings]) if params[:ratings].present?
     result = result.where(furnishing: params[:furnishing]) if params[:furnishing].present?
-    result = result.where(size: params[:size]) if params[:size].present?
 
     if params[:price].present?
       price_range = params[:price].map(&:to_i)
       result = result.where(price: price_range[0]..price_range[1])
+    end
+
+    if params[:size].present?
+      size_range = params[:size].map(&:to_i)
+      result = result.where(size: size_range[0]..size_range[1])
     end
 
     if params[:amenities].present?

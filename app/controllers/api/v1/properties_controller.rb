@@ -202,15 +202,19 @@ module Api
         def rate
           @property = Property.find(params[:id])
           new_rating = params[:rating].to_f
-        
+
+          if not params[:rating]
+            return render json: { error: "Invalid rating key or value. The key should be 'rating' and the value can be anywhere between 0.0 to 5.0" }, status: :unprocessable_entity
+          end
+
           unless (0.0..5.0).cover?(new_rating)
             return render json: { error: 'Invalid rating. Rating should be between 0.0 and 5.0.' }, status: :unprocessable_entity
           end
-        
+
           current_ratings = @property.ratings || 0.0
           current_number_of_ratings = @property.number_of_ratings || 0
         
-          if current_ratings.zero?
+          if current_ratings.zero? && @property.number_of_ratings == 0
             updated_ratings = new_rating
           else
             updated_ratings = ((current_ratings * current_number_of_ratings + new_rating) / (current_number_of_ratings + 1)).round(2)
@@ -333,30 +337,22 @@ module Api
           max_video_limit = 1
           max_image_size_mb = 5
           max_video_size_mb = 60
-        
 
-          if params[:images]
+          if params[:images] || params.dig(:property, :images)
+            uploaded_images = params[:images] || params.dig(:property, :images)
             remaining_image_slots = max_image_limit - current_image_count
-          
-            if params[:images].size > remaining_image_slots
-              puts json: { error: "Image upload limit exceeded. You can upload up to #{remaining_image_slots} more images." }, status: :unprocessable_entity
+
+            if uploaded_images.size > remaining_image_slots
+              #return render json: { error: "Image upload limit exceeded. You can upload up to #{remaining_image_slots} more images." }, status: :unprocessable_entity
             end
-        
-            attachments = params[:images].map do |image|
+
+            attachments = []
+
+            uploaded_images.each do |image|
               begin
                 decoded_image = Base64.decode64(image)
         
-                image_size_mb = decoded_image.bytesize / 1024.0 / 1024.0
-        
-                if image_size_mb > max_image_size_mb
-                  puts json: { error: "Image size exceeds the maximum limit of #{max_image_size_mb} MB." }, status: :unprocessable_entity
-                end
-        
                 format = FastImage.type(decoded_image)
-        
-                unless ['png', 'jpg'].include?(format.downcase)
-                  puts json: { error: "Invalid image format. Only PNG and JPG formats are allowed." }, status: :unprocessable_entity
-                end
         
                 image = MiniMagick::Image.read(decoded_image)
                 image.resize '300x200'
@@ -367,62 +363,19 @@ module Api
                   filename: "image_#{Time.now.to_i}.jpeg",
                   content_type: 'image/jpeg'
                 )
-
-                { io: blob, filename: blob.filename.to_s }
+        
+                attachments << { io: blob, filename: blob.filename.to_s }
               rescue => e
                 #return render json: { error: "Failed to process image upload. #{e.message}" }, status: :unprocessable_entity
               end
             end
-        
+            # attach the image/s after validation checks
             @property.images.attach(attachments)
-        
-          elsif params.dig(:property, :images)
-              remaining_image_slots = max_image_limit - current_image_count
-          
-              if params[:property][:images].size > remaining_image_slots
-                puts json: { error: "Image upload limit exceeded. You can upload up to #{remaining_image_slots} more images." }, status: :unprocessable_entity
-              end
-          
-              attachments = params[:property][:images].map do |image|
-                begin
-                  decoded_image = Base64.decode64(image)
-          
-                  image_size_mb = decoded_image.bytesize / 1024.0 / 1024.0
-          
-                  if image_size_mb > max_image_size_mb
-                    puts json: { error: "Image size exceeds the maximum limit of #{max_image_size_mb} MB." }, status: :unprocessable_entity
-                  end
-          
-                  format = FastImage.type(decoded_image)
-          
-                  unless ['png', 'jpg'].include?(format.downcase)
-                    puts json: { error: "Invalid image format. Only PNG and JPG formats are allowed." }, status: :unprocessable_entity
-                  end
-
-                  image = MiniMagick::Image.read(decoded_image)
-                  image.resize '300x200'
-                  image.format('jpeg')
-          
-                  blob = ActiveStorage::Blob.create_after_upload!(
-                    io: StringIO.new(image.to_blob),
-                    filename: "image_#{Time.now.to_i}.jpeg",
-                    content_type: 'image/jpeg'
-                  )
-
-                  { io: blob, filename: blob.filename.to_s }
-                rescue => e
-                  #return render json: { error: "Failed to process image upload. #{e.message}" }, status: :unprocessable_entity
-                end
-              end
-          
-              @property.images.attach(attachments)
-          else
-            puts "No images received"
           end
 
           if params[:video]
             if has_video
-              return render json: { error: "Video upload limit reached. You can upload only one video." }, status: :unprocessable_entity
+              #return render json: { error: "Video upload limit reached. You can upload only one video." }, status: :unprocessable_entity
             end
         
             video_data = Base64.decode64(params[:video])
@@ -430,16 +383,16 @@ module Api
             video_size_mb = video_data.bytesize / 1024.0 / 1024.0
 
             if video_size_mb > max_video_size_mb
-              return render json: { error: "Video size exceeds the maximum limit of #{max_video_size_mb} MB." }, status: :unprocessable_entity
+              #return render json: { error: "Video size exceeds the maximum limit of #{max_video_size_mb} MB." }, status: :unprocessable_entity
             end
 
             compatible_formats = ['mp4', 'webm']
             video_format = FFMPEG::Movie.new(StringIO.new(video_data)).format_name.downcase
-        
+
             unless compatible_formats.include?(video_format)
-              return render json: { error: "Invalid video format. Only #{compatible_formats.join(', ')} formats are allowed." }, status: :unprocessable_entity
+              #return render json: { error: "Invalid video format. Only #{compatible_formats.join(', ')} formats are allowed." }, status: :unprocessable_entity
             end
-        
+
             # attach the video after validation checks
             @property.video.attach(io: StringIO.new(video_data), filename: "video_#{Time.now.to_i}.#{video_format}")
           end
@@ -461,13 +414,13 @@ module Api
           end
         end
 
-        # to search for a property using price range, use for example-> search?price[]=50000&price[]=100000
+        # to search for a property using price and/or size range, use for example-> search?price[]=50000&price[]=100000
         def search_params
           params.permit(
             :category_id, :location, :property_status, :number_of_bedrooms, :number_of_bathrooms,
-            :ratings, :furnishing, :size, :fully_fitted_kitchen, :furnishing, :standby_generator,
+            :ratings, :furnishing, :fully_fitted_kitchen, :furnishing, :standby_generator,
             :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, 
-            :security_service, :tv, :gym, :others, price: []
+            :security_service, :tv, :gym, :others, price: [], size: []
           )
         end
 
@@ -478,7 +431,8 @@ module Api
         
           properties = properties.where("property_status ILIKE ?", "%#{search_params[:property_status]}%") if search_params[:property_status].present?
           properties = properties.where("price >= ? AND price <= ?", search_params[:min_price], search_params[:max_price]) if search_params[:min_price].present? && search_params[:max_price].present?
-        
+          properties = properties.where("size >= ? AND size <= ?", search_params[:min_size], search_params[:max_size]) if search_params[:min_size].present? && search_params[:max_size].present?
+
           # add scoring based on matching fields
           properties_with_score = properties.map do |property|
             score = 0

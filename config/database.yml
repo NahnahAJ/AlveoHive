@@ -25,8 +25,8 @@ default: &default
 development:
   <<: *default
   database: alveo_hive_api_development
-  username: Rails.application.credentials.dig(:development, :db_username)
-  password: Rails.application.credentials.dig(:development, :db_password)
+  username: ${rails_username_dev}
+  password: ${rails_password_dev}
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -61,8 +61,8 @@ development:
 test:
   <<: *default
   database: alveo_hive_api_test
-  username: postgres
-  password: password
+  username: ${rails_username_test}
+  password: ${rails_password_test}
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -87,5 +87,5 @@ test:
 production:
   <<: *default
   database: alveo_hive_api_production
-  username: Rails.application.credentials.dig(:production, :db_username)
-  password: Rails.application.credentials.dig(:production, :db_password)
+  username: ${rails_username_prod}
+  password: ${rails_password_prod}
