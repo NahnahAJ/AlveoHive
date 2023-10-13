@@ -7,7 +7,6 @@ class CreateUserDetails < ActiveRecord::Migration[7.0]
       t.string :role
       t.text :address
       t.string :country
-      t.string :profile_picture
       t.string :company_name
       t.string :mobile_phone
       t.string :office_phone
