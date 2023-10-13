@@ -55,6 +55,23 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
+  #config.active_storage.replace_on_assign_to_many = false
+
+  # TODO: Configure for PRODUCTION as well
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: Rails.application.secrets.email_address,
+    port: Rails.application.secrets.email_port,
+    domain: Rails.application.secrets.email_domain,
+    user_name: Rails.application.secrets.email_user_name,
+    password: Rails.application.secrets.email_password,
+    authentication: :login,
+    enable_starttls_auto: true,
+    ssl: true
+  }
+  config.action_mailer.default_url_options = { host: 'localhost:4000' }
+
+
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
