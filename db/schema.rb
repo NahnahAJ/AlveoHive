@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_11_054105) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_18_083711) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -55,9 +55,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_11_054105) do
     t.boolean "security_service"
     t.boolean "tv"
     t.boolean "gym"
-    t.string "others"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "others", default: []
     t.index ["property_id"], name: "index_amenities_on_property_id"
   end
 
@@ -78,6 +78,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_11_054105) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name"
+  end
+
+  create_table "currencies", force: :cascade do |t|
+    t.string "name"
+    t.jsonb "conversion_rates"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "enquiries", force: :cascade do |t|
@@ -111,7 +118,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_11_054105) do
     t.integer "number_of_ratings", default: 0
     t.float "latitude", default: 0.0
     t.float "longitude", default: 0.0
+    t.string "currency", default: "GHS", null: false
     t.index ["category_id"], name: "index_properties_on_category_id"
+    t.index ["currency"], name: "index_properties_on_currency"
     t.index ["user_id"], name: "index_properties_on_user_id"
   end
 

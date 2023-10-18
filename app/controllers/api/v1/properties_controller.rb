@@ -156,7 +156,7 @@ module Api
         def search
           # returns approved properties that match the search criteria, or similar properties if there's no matching result
           @properties = Property.filter_by_params(search_params).includes(:amenities).where(is_property_live: true)
-        
+
           if @properties.empty?
             # if no exact match is found, provide similar items as suggestions
             similar_items = find_similar_items(search_params)
@@ -239,7 +239,8 @@ module Api
           @property = Property.find_by(id: params[:id])
 
           if @property.present?
-            render json: { amenities: @property.amenities }
+            render json: { amenities: @property.amenities.map { |amenity| amenity.attributes.merge(others: amenity.others) } }
+            #render json: { amenities: @property.amenities }
           else
             render json: { error: 'Property not found' }, status: :not_found
           end
@@ -310,7 +311,7 @@ module Api
           params.require(:property).permit(
             :user_id, :category_id, :name, :location, :property_status, :property_overview,
             :number_of_bedrooms, :number_of_bathrooms, :ratings, :furnishing, :size, :price,
-            :date_listed, :longitude, :latitude, :video, images: []
+            :date_listed, :longitude, :latitude, :currency, :video, images: []
           )
         end
 
@@ -318,7 +319,7 @@ module Api
           params.require(:amenity).permit(
             :fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity,
             :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service,
-            :tv, :gym, :others
+            :tv, :gym, others: []
           )
         end
 
@@ -420,7 +421,7 @@ module Api
             :category_id, :location, :property_status, :number_of_bedrooms, :number_of_bathrooms,
             :ratings, :furnishing, :fully_fitted_kitchen, :furnishing, :standby_generator,
             :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, 
-            :security_service, :tv, :gym, :others, price: [], size: []
+            :security_service, :tv, :gym, :currency, others: [], price: [], size: []
           )
         end
 
@@ -428,7 +429,7 @@ module Api
           # find and return similar items based on search criteria
           #properties = Property.all
           properties = Property.where(is_property_live: true)
-        
+
           properties = properties.where("property_status ILIKE ?", "%#{search_params[:property_status]}%") if search_params[:property_status].present?
           properties = properties.where("price >= ? AND price <= ?", search_params[:min_price], search_params[:max_price]) if search_params[:min_price].present? && search_params[:max_price].present?
           properties = properties.where("size >= ? AND size <= ?", search_params[:min_size], search_params[:max_size]) if search_params[:min_size].present? && search_params[:max_size].present?

@@ -47,6 +47,8 @@ namespace :api do
       end
     end
 
+    resources :currencies, only: [:index, :create, :update, :destroy]
+
     #resources :properties, only: [:index, :create, :show, :destroy]
     resources :properties do
       collection do
