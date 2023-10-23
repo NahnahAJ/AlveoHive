@@ -426,32 +426,72 @@ module Api
         end
 
         def find_similar_items(search_params)
-          # find and return similar items based on search criteria
-          #properties = Property.all
+          # Find and return similar items based on search criteria
           properties = Property.where(is_property_live: true)
-
+        
           properties = properties.where("property_status ILIKE ?", "%#{search_params[:property_status]}%") if search_params[:property_status].present?
-          properties = properties.where("price >= ? AND price <= ?", search_params[:min_price], search_params[:max_price]) if search_params[:min_price].present? && search_params[:max_price].present?
-          properties = properties.where("size >= ? AND size <= ?", search_params[:min_size], search_params[:max_size]) if search_params[:min_size].present? && search_params[:max_size].present?
+        
+          if search_params[:min_price].present? && search_params[:max_price].present?
+            price_range = search_params[:min_price].to_i..search_params[:max_price].to_i
 
-          # add scoring based on matching fields
+            # If currency is specified in the search parameters, use it; otherwise, default to 'GHS'
+            specified_currency = search_params[:currency].present? ? search_params[:currency].upcase : 'GHS'
+        
+            # Get unique currencies in the database
+            unique_currencies = properties.distinct.pluck(:currency)
+        
+            # Fetch conversion rates from the database
+            conversion_rates = Currency.all.pluck(:name, :conversion_rates).to_h
+        
+            # Default conversion rate (same currency)
+            default_conversion_rate = 1.0
+        
+            or_conditions = unique_currencies.map do |currency|
+              if currency.upcase == specified_currency
+                # If the property's currency matches the specified currency, no conversion needed
+                properties.where(
+                  "currency = ? AND price BETWEEN ? AND ?",
+                  currency,
+                  price_range.min,
+                  price_range.max
+                )
+              else
+                # If the property's currency is different, perform the conversion
+                conversion_rate = conversion_rates.dig(currency.upcase, specified_currency)
+                properties.where(
+                  "currency = ? AND (price * ?) BETWEEN ? AND ?",
+                  currency,
+                  conversion_rate,
+                  price_range.min,
+                  price_range.max
+                )
+              end
+            end
+        
+            # Include properties with the default currency (GHS)
+            or_conditions << properties.where(currency: 'GHS', price: price_range)
+        
+            properties = or_conditions.inject(:or)
+          end
+        
+          properties = properties.where("size BETWEEN ? AND ?", search_params[:min_size], search_params[:max_size]) if search_params[:min_size].present? && search_params[:max_size].present?
+
           properties_with_score = properties.map do |property|
             score = 0
         
             score += 1 if property.number_of_bedrooms == search_params[:number_of_bedrooms]
             score += 1 if property.location == search_params[:location]
-            # add more conditions and adjust scores
-        
+                
             { property: property, score: score }
           end
         
           sorted_properties = properties_with_score.sort_by { |item| item[:score] }.reverse
         
-          # grab the top 5 similar properties
+          # Grab the top 5 similar properties
           result = sorted_properties.take(5).map { |item| item[:property] }
-
+        
           result.as_json(include: [:amenities])
-        end        
+        end               
 
         def serialize_properties(properties)
           properties.map { |property| serialize_property(property) }

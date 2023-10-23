@@ -34,4 +34,8 @@ config/secrets.yml
 # Ignore database file
 config/database.yml
 
+# Ignore credentials file
 config/credentials.yml.enc
+
+# Ignore Gemfile.lock
+/Gemfile.lock
