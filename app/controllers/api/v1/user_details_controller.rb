@@ -1,6 +1,8 @@
 module Api
     module V1
       class UserDetailsController < ApplicationController
+        load_and_authorize_resource      
+        
         def index
           @user_details = UserDetail.all
           render json: @user_details
@@ -45,7 +47,7 @@ module Api
             :user_id
           )
         end
-        
+
       end
     end
   end
