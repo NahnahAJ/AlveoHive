@@ -3,7 +3,7 @@ module Api
 
       class Api::V1::EnquiriesController < ApplicationController
         #before_action :authenticate_user!
-        #load_and_authorize_resource
+        load_and_authorize_resource
 
         # GET /api/v1/enquiries
         def index

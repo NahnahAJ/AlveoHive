@@ -21,8 +21,9 @@ namespace :api do
 
     resources :user_details, only: [:index, :create, :show, :destroy, :update] do
     resources :profile_pictures, only: [:index, :show]
-    end
-
+  end
+  
+    resources :socials, only: [:index, :create, :show, :update, :destroy]
     resources :amenities, only: [:index, :create, :show, :destroy]
 
     resources :articles do
@@ -56,6 +57,8 @@ namespace :api do
         get 'live_properties'
         get 'pending_properties'
       end
+
+
       resources :enquiries, only: [:index], controller: 'enquiries', action: 'property_enquiries'
       get 'export_pdf', on: :member
       post 'rate', on: :member
