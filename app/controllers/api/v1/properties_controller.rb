@@ -46,7 +46,7 @@ module Api
 
             html_content = ActionController::Base.new.render_to_string(
               template: "export_pdf",
-              locals: { property: @property, amenities: @amenities, image_urls: @image_urls },
+              locals: { property: @property, amenities: @amenities, image_urls: @image_urls, property_url: api_v1_property_url(@property) },
               layout: "pdf_layout"
             )
 
