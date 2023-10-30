@@ -8,6 +8,7 @@ module Api
         load_and_authorize_resource
 
         before_action :set_property, only: [:delete_image, :clear_images]
+        before_action :increment_hit_count, only: [:show]
 
         #################### Property begins #########################
 
@@ -321,6 +322,16 @@ module Api
             :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service,
             :tv, :gym, others: []
           )
+        end
+
+        def increment_hit_count
+          @property = Property.find(params[:id])
+          if @property.present?
+            @property.hits_count += 1
+            @property.save(validate: false)
+          else
+            render json: { error: "Property with ID #{params[:id]} not found" }, status: :not_found
+          end
         end
 
         def handle_file_uploads
