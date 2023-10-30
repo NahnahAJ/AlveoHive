@@ -40,6 +40,8 @@ gem 'devise'
 gem 'devise-jwt'
 gem 'jsonapi-serializer'
 
+gem 'cancancan'
+
 gem 'carrierwave', '2.1.0'
 gem 'mini_magick', '4.11.0'
 gem 'wicked_pdf'
