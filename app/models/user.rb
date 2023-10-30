@@ -14,4 +14,8 @@ class User < ApplicationRecord
          validates :username, uniqueness: true
          validates :email, presence: true, uniqueness: true
           validates :password, presence: true, length: { minimum: 6 }
+
+    def admin?
+      role == 'admin'
+    end
 end
