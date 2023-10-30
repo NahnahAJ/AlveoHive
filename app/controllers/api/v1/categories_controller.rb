@@ -3,7 +3,7 @@ module Api
 
       class Api::V1::CategoriesController < ApplicationController
         #before_action :authenticate_user!
-        #load_and_authorize_resource
+        load_and_authorize_resource
 
         # GET /api/v1/categories
         # for example /api/v1/categories?parent_category={Property or Article}

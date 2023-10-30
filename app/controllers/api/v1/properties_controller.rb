@@ -5,7 +5,7 @@ module Api
 
       class Api::V1::PropertiesController < ApplicationController
         #before_action :authenticate_user!, except: [:index, :show]
-        #load_and_authorize_resource
+        load_and_authorize_resource
 
         before_action :set_property, only: [:delete_image, :clear_images]
 

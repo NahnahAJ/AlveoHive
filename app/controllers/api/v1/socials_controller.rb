@@ -1,6 +1,7 @@
 module Api
   module V1
     class SocialsController < ApplicationController
+      load_and_authorize_resource      
       def index
         # code to retrieve all socials
         @socials = Social.all
