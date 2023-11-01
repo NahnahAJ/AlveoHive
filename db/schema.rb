@@ -141,7 +141,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.bigint "user_id", null: false
     t.string "name"
     t.text "bio"
-    t.string "role"
     t.text "address"
     t.string "country"
     t.string "company_name"
@@ -158,6 +157,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.string "username"
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
+    t.string "role", default: "regular", null: false
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
