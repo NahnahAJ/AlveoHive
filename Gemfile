@@ -47,6 +47,9 @@ gem 'mini_magick', '4.11.0'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'fastimage'
+gem 'will_paginate'
+gem 'streamio-ffmpeg'
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

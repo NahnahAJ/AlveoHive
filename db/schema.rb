@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
-ActiveRecord::Schema[7.0].define(version: 2023_10_24_103304) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_31_151449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,7 +57,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_103304) do
     t.boolean "gym"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "others", default: []
+    t.string "others", default: "[]"
+    t.boolean "walled_gated", default: false
+    t.boolean "parking_space", default: false
+    t.boolean "living_room", default: false
+    t.boolean "dining_room", default: false
+    t.boolean "waste_disposal", default: false
     t.index ["property_id"], name: "index_amenities_on_property_id"
   end
 
@@ -101,7 +105,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_103304) do
 
   create_table "properties", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "category_id", null: false
     t.string "name"
     t.string "location"
     t.string "property_status"
@@ -121,9 +124,56 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_103304) do
     t.float "longitude", default: 0.0
     t.string "currency", default: "GHS", null: false
     t.integer "hits_count", default: 0
-    t.index ["category_id"], name: "index_properties_on_category_id"
+    t.string "property_type"
+    t.string "commercial_property_type"
     t.index ["currency"], name: "index_properties_on_currency"
     t.index ["user_id"], name: "index_properties_on_user_id"
+  end
+
+  create_table "property_details", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "has_room_serviced", default: false
+    t.integer "number_of_storeys"
+    t.boolean "pet_friendly_compound", default: false
+    t.string "compound_finishing"
+    t.string "finishing"
+    t.string "bathroom_type_and_location"
+    t.string "year_built"
+    t.string "street"
+    t.string "payment_plan"
+    t.string "state_of_land"
+    t.string "number_of_tenants"
+    t.string "type_of_meter"
+    t.string "source_of_water"
+    t.boolean "property_needs_renovation", default: false
+    t.boolean "smoking_allowed", default: false
+    t.boolean "tiled_areas", default: false
+    t.string "ceiling_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_property_details_on_property_id"
+  end
+
+  create_table "public_facilities", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "schools", default: false
+    t.boolean "hospitals", default: false
+    t.boolean "pharmacies", default: false
+    t.string "others", default: "{}"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_public_facilities_on_property_id"
+  end
+
+  create_table "recreational_facilities", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "restaurants", default: false
+    t.boolean "pubs", default: false
+    t.boolean "gyms", default: false
+    t.string "others", default: "{}"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_recreational_facilities_on_property_id"
   end
 
   create_table "socials", force: :cascade do |t|
@@ -178,8 +228,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_103304) do
   add_foreign_key "articles", "users"
   add_foreign_key "enquiries", "properties"
   add_foreign_key "enquiries", "users"
-  add_foreign_key "properties", "categories"
   add_foreign_key "properties", "users"
+  add_foreign_key "property_details", "properties"
+  add_foreign_key "public_facilities", "properties"
+  add_foreign_key "recreational_facilities", "properties"
   add_foreign_key "socials", "users"
   add_foreign_key "user_details", "users"
 end

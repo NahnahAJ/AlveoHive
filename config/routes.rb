@@ -58,14 +58,19 @@ namespace :api do
         get 'pending_properties'
       end
 
+    resources :schools do
+      collection do
+        get 'get_schools'
+      end
+    end
 
-      resources :enquiries, only: [:index], controller: 'enquiries', action: 'property_enquiries'
-      get 'export_pdf', on: :member
-      post 'rate', on: :member
-      delete 'delete_video', on: :member
-      delete 'images/:image_id', to: 'properties#delete_image', on: :member, as: 'delete_image'
-      delete 'clear_images', to: 'properties#clear_images', on: :member, as: 'clear_images'
-   
+    resources :enquiries, only: [:index], controller: 'enquiries', action: 'property_enquiries'
+    get 'export_pdf', on: :member
+    post 'rate', on: :member
+    delete 'delete_video', on: :member
+    delete 'images/:image_id', to: 'properties#delete_image', on: :member, as: 'delete_image'
+    delete 'clear_images', to: 'properties#clear_images', on: :member, as: 'clear_images'
+  
       member do
         get 'get_images'
         get 'get_video'
