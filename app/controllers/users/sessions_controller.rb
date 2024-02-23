@@ -3,6 +3,7 @@
 class Users::SessionsController < Devise::SessionsController
 include RackSessionFix
   # before_action :configure_sign_in_params, only: [:create]
+  before_action :authenticate_user!
 
   respond_to :json
   private
