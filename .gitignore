@@ -42,3 +42,6 @@ config/credentials.yml.enc
 
 # Ignore schema
 /db/schema.rb
+
+# Ignore .env file
+/.env

@@ -3,6 +3,8 @@
 class Users::SessionsController < Devise::SessionsController
 include RackSessionFix
   # before_action :configure_sign_in_params, only: [:create]
+  # TODO: remove the below in production
+  skip_before_action :verify_authenticity_token
 
   respond_to :json
   private

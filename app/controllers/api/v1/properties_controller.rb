@@ -16,13 +16,13 @@ module Api
         # GET /api/v1/properties
         def index
           # @properties = Property.all
-          @properties = Property.all.paginate(page: params[:page], per_page: params[:per_page] || 30)
+          @properties = Property.all.page(params[:page]).per(params[:per_page] || 30)
           serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
           # render json: serialized_properties
           render json: {
             properties: serialized_properties,
             total_pages: @properties.total_pages,
-            total_items: @properties.total_entries
+            total_items: @properties.total_count
           }
           
         end
@@ -169,7 +169,7 @@ module Api
         # GET /api/v1/properties/search
         def search
           # returns approved properties that match the search criteria, or similar properties if there's no matching result
-          @properties = Property.filter_by_params(search_params).where(is_property_live: true).paginate(page: params[:page], per_page: params[:per_page] || 30)
+          @properties = Property.filter_by_params(search_params).where(is_property_live: true).page(params[:page]).per(params[:per_page] || 30)
 
           if @properties.empty?
             # if no exact match is found, provide similar items as suggestions
@@ -183,7 +183,7 @@ module Api
             render json: {
               properties: serialized_properties,
               total_pages: @properties.total_pages,
-              total_items: @properties.total_entries
+              total_items: @properties.total_count
             }
           end
         end
@@ -208,14 +208,14 @@ module Api
         # returns a list of all properties that have been approved for listing
         # GET /api/v1/properties/live_properties
         def live_properties
-          live_properties = Property.where(is_property_live: true).paginate(page: params[:page], per_page: params[:per_page] || 30)
+          live_properties = Property.where(is_property_live: true).page(params[:page]).per(params[:per_page] || 30)
 
           serialized_properties = live_properties.map { |property| serialize_property_with_media(property) }
 
           render json: {
             properties: serialized_properties,
             total_pages: live_properties.total_pages,
-            total_items: live_properties.total_entries
+            total_items: live_properties.total_count
           }
         end
 

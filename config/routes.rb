@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  devise_for :admin_users, ActiveAdmin::Devise.config
+  ActiveAdmin.routes(self)
   get '/current_user', to: 'current_user#index'
     devise_for :users, path: '', path_names: {
       sign_in: 'login',
@@ -9,6 +11,26 @@ Rails.application.routes.draw do
       sessions: 'users/sessions',
       registrations: 'users/registrations'
     }
+
+    namespace :admin do
+      resources :properties do
+        member do
+          put :approve
+        end
+      end
+    end
+
+    # successful payment handling
+    post '/payments/success', to: 'payments#success'
+    # mobile money payment endpoint
+    post '/payments/mobile_money', to: 'payments#mobile_money'
+    # send otp endpoint
+    post '/payments/submit_otp', to: 'payments#submit_otp'
+    # webhook url for listening for events from paystack
+    post '/webhooks/paystack', to: 'webhooks#paystack'
+
+    # auth url for checking subscription status, as well as authentication status
+    get '/auth/authenticated', to: 'auth#authenticated'
 
 namespace :api do 
   namespace :v1 do 

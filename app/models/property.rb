@@ -15,11 +15,11 @@ class Property < ApplicationRecord
 
   validates :currency, presence: true, inclusion: { in: %w(USD GHS EUR GBP), message: "%{value} is not a valid currency. Options are USD, GHS, EUR and GBP" }
 
-  validate :validate_image_limit
-  validate :validate_image_size
-  validate :validate_image_types
+  # validate :validate_image_limit
+  # validate :validate_image_size
+  # validate :validate_image_types
 
-  validate :validate_video_size
+  # validate :validate_video_size
 
 
   scope :filter_by_params, ->(params) {
@@ -127,34 +127,34 @@ class Property < ApplicationRecord
 
   private
 
-  def validate_image_limit
-    if images.attached? && images.count > 5
-      errors.add(:images, "cannot be more than 5. You tried uploading #{images.count} images")
-    end
-  end
+  # def validate_image_limit
+  #   if images.attached? && images.count > 5
+  #     errors.add(:images, "cannot be more than 5. You tried uploading #{images.count} images")
+  #   end
+  # end
 
-  def validate_image_size
-    images.each do |image|
-      if image.byte_size > 5.megabytes
-        errors.add(:images, 'should be less than 5MB')
-      end
-    end
-  end
+  # def validate_image_size
+  #   images.each do |image|
+  #     if image.byte_size > 5.megabytes
+  #       errors.add(:images, 'should be less than 5MB')
+  #     end
+  #   end
+  # end
 
-  def validate_image_types
-    allowed_types = %w[image/jpeg image/jpg image/png]
+  # def validate_image_types
+  #   allowed_types = %w[image/jpeg image/jpg image/png]
 
-    images.each do |image|
-      unless allowed_types.include?(image.content_type)
-        errors.add(:images, 'should be JPEG, JPG, or PNG format')
-      end
-    end
-  end
+  #   images.each do |image|
+  #     unless allowed_types.include?(image.content_type)
+  #       errors.add(:images, 'should be JPEG, JPG, or PNG format')
+  #     end
+  #   end
+  # end
 
-  def validate_video_size
-    if video.attached? && video.byte_size > 60.megabytes
-      errors.add(:video, 'size should be 60MB or less')
-    end
-  end
+  # def validate_video_size
+  #   if video.attached? && video.byte_size > 60.megabytes
+  #     errors.add(:video, 'size should be 60MB or less')
+  #   end
+  # end
 
 end
