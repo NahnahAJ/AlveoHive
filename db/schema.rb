@@ -95,7 +95,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_22_210230) do
   create_table "articles", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "title"
+    t.string "summary"
     t.text "content"
+    t.string "image"
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -233,7 +235,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_22_210230) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "username"
+    t.string "firstname", default: "", null: false
+    t.string "lastname", default: "", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "role", default: "regular", null: false
@@ -244,9 +247,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_22_210230) do
     t.datetime "updated_at", null: false
     t.string "jti"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["firstname"], name: "index_users_on_firstname", unique: true
     t.index ["jti"], name: "index_users_on_jti"
+    t.index ["lastname"], name: "index_users_on_lastname", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
-    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
