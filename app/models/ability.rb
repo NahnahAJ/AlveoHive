@@ -4,7 +4,6 @@ class Ability
 
   def initialize(user)
     user ||= User.new # guest user (not logged in)
-    Rails.logger.debug "Current user: #{user.inspect}" # added by Michael for debugging purposes
 
     if user.admin? || user.persisted?
       can :manage, :all

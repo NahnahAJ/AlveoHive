@@ -17,7 +17,7 @@ class WebhooksController < ApplicationController
 
         # Log the raw event for debugging purposes
         Rails.logger.info("Paystack Webhook Received: #{event}")
-  
+
         # Process the event
         handle_paystack_event(event)
       end
