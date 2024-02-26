@@ -2,10 +2,11 @@ module Api
     module V1
 
       require 'fastimage'
+      require 'streamio-ffmpeg'
 
       class Api::V1::PropertiesController < ApplicationController
         #before_action :authenticate_user!, except: [:index, :show]
-        load_and_authorize_resource
+        # load_and_authorize_resource
 
         before_action :set_property, only: [:delete_image, :clear_images]
         before_action :increment_hit_count, only: [:show]
@@ -14,16 +15,25 @@ module Api
 
         # GET /api/v1/properties
         def index
-          @properties = Property.all
-          render json: serialize_properties(@properties)
+          # @properties = Property.all
+          @properties = Property.all.page(params[:page]).per(params[:per_page] || 30)
+          serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
+          # render json: serialized_properties
+          render json: {
+            properties: serialized_properties,
+            total_pages: @properties.total_pages,
+            total_items: @properties.total_count
+          }
           
         end
 
         # GET /api/v1/users/:id/properties (for listing all the properties of a particular user)
         def user_properties
-          @user_properties = Property.where(user_id: params[:user_id]).includes(:amenities)
+          @user_properties = Property.where(user_id: params[:user_id])
+        
           if @user_properties.present?
-            render json: serialize_property(@user_properties)
+            serialized_properties = @user_properties.map { |property| serialize_property_with_media(property) }
+            render json: serialized_properties
           else
             render json: { error: "No property found for user with ID #{params[:user_id]}" }, status: :not_found
           end
@@ -46,7 +56,7 @@ module Api
 
             html_content = ActionController::Base.new.render_to_string(
               template: "export_pdf",
-              locals: { property: @property, amenities: @amenities, image_urls: @image_urls },
+              locals: { property: @property, amenities: @amenities, image_urls: @image_urls, property_url: api_v1_property_url(@property) },
               layout: "pdf_layout"
             )
 
@@ -71,10 +81,11 @@ module Api
 
         # GET /api/v1/properties/:id
         def show
-          @property = Property.where(id: params[:id]).includes(:amenities)
+          properties = Property.where(id: params[:id])
 
-          if @property.present?
-            render json: serialize_property(@property)
+          if properties.present?
+            serialized_properties = properties.map { |property| serialize_property_with_media(property) }
+            render json: serialized_properties
           else
             render json: { error: "Property with ID #{params[:id]} not found" }, status: :not_found
           end
@@ -88,9 +99,10 @@ module Api
 
           if @property.save
             # Send property submission email to Alveohive
-            PropertyApprovalMailer.property_submitted_for_review(@property).deliver_now
-            render json: serialize_property(@property), status: :created
+            # PropertyApprovalMailer.property_submitted_for_review(@property).deliver_now
+            render json: serialize_property_with_media(@property), status: :created
           else
+            puts(@property.errors.full_messages)
             render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
           end
         end
@@ -102,7 +114,8 @@ module Api
           handle_file_uploads
 
           if @property.update(property_params)
-            render json: serialize_property(@property)
+            serialized_property = @property.map { |property| serialize_property_with_media(property) }
+            render json: serialize_property
           else
             render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
           end
@@ -156,14 +169,22 @@ module Api
         # GET /api/v1/properties/search
         def search
           # returns approved properties that match the search criteria, or similar properties if there's no matching result
-          @properties = Property.filter_by_params(search_params).includes(:amenities).where(is_property_live: true)
+          @properties = Property.filter_by_params(search_params).where(is_property_live: true).page(params[:page]).per(params[:per_page] || 30)
 
           if @properties.empty?
             # if no exact match is found, provide similar items as suggestions
             similar_items = find_similar_items(search_params)
-            render json: { similar_properties: similar_items }, status: :not_found
+            render json: {
+              similar_properties: similar_items
+            }, status: :not_found
+
           else
-            render json: { properties: serialize_properties(@properties) }
+            serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
+            render json: {
+              properties: serialized_properties,
+              total_pages: @properties.total_pages,
+              total_items: @properties.total_count
+            }
           end
         end
 
@@ -187,16 +208,36 @@ module Api
         # returns a list of all properties that have been approved for listing
         # GET /api/v1/properties/live_properties
         def live_properties
-          live_properties = Property.where(is_property_live: true).includes(:amenities)
+          live_properties = Property.where(is_property_live: true).page(params[:page]).per(params[:per_page] || 30)
 
-          render json: live_properties, include: :amenities
+          serialized_properties = live_properties.map { |property| serialize_property_with_media(property) }
+
+          render json: {
+            properties: serialized_properties,
+            total_pages: live_properties.total_pages,
+            total_items: live_properties.total_count
+          }
         end
 
         # GET /api/v1/properties/pending_properties
         def pending_properties
-          pending_properties = Property.where(is_property_live: false).includes(:amenities)
+          pending_properties = Property.where(is_property_live: false)
+          serialized_properties = pending_properties.map { |property| serialize_property_with_media(property) }
 
-          render json: pending_properties, include: :amenities
+          render json: serialized_properties, include: {
+            amenities: {
+              only: [:fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :others, :walled_gated, :parking_space, :living_room, :dining_room, :waste_disposal]
+            },
+            property_detail: {
+              only: [:has_room_serviced, :number_of_storeys, :pet_friendly_compound, :compound_finishing, :finishing, :bathroom_type_and_location, :year_built, :street, :payment_plan, :state_of_land, :number_of_tenants, :type_of_meter, :source_of_water, :property_needs_renovation, :smoking_allowed, :tiled_areas, :ceiling_type]
+            },
+            public_facility: {
+              only: [:schools, :hospitals, :pharmacies, :others]
+            },
+            recreational_facility: {
+              only: [:restaurants, :pubs, :gyms, :others]
+            }
+          }
         end
 
         # POST /api/v1/properties/:id/rate
@@ -310,17 +351,39 @@ module Api
 
         def property_params
           params.require(:property).permit(
-            :user_id, :category_id, :name, :location, :property_status, :property_overview,
-            :number_of_bedrooms, :number_of_bathrooms, :ratings, :furnishing, :size, :price,
-            :date_listed, :longitude, :latitude, :currency, :video, images: []
+            :name, :property_type, :is_property_live, :commercial_property_type, :location, :property_status, :property_overview, 
+            :number_of_bedrooms, :number_of_bathrooms, :ratings, 
+            :furnishing, :size, :price, :date_listed, :is_property_live, 
+            :number_of_ratings, :latitude, :longitude, :currency, :user_id,
+            :video, images: [],
+            amenities_attributes: [
+              :property_id, :fully_fitted_kitchen, :furnishing, :standby_generator,
+              :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service,
+              :tv, :gym, :walled_gated, :parking_space, :living_room, :dining_room, :waste_disposal,
+              :others
+            ],
+            property_detail_attributes: [
+              :has_room_serviced, :number_of_storeys, :pet_friendly_compound,
+              :compound_finishing, :finishing, :bathroom_type_and_location, :year_built, :street,
+              :payment_plan, :state_of_land, :number_of_tenants, :type_of_meter, :source_of_water,
+              :property_needs_renovation, :smoking_allowed, :tiled_areas, :ceiling_type
+            ],
+            public_facility_attributes: [
+              :schools, :hospitals, :pharmacies,
+              :others
+            ],
+            recreational_facility_attributes: [
+              :restaurants, :pubs, :gyms,
+              :others
+            ]
           )
-        end
+        end        
 
         def amenity_params
           params.require(:amenity).permit(
-            :fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity,
-            :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service,
-            :tv, :gym, others: []
+            :fully_fitted_kitchen, :standby_generator, :internet_connectivity, :ac_rooms, :furnishing,
+            :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :parking_space, 
+            :living_room, :dining_room, :walled_gated, :others
           )
         end
 
@@ -347,8 +410,8 @@ module Api
           # upload limits
           max_image_limit = 5
           max_video_limit = 1
-          max_image_size_mb = 5
-          max_video_size_mb = 60
+          max_image_size_mb = 10
+          max_video_size_mb = 80
 
           if params[:images] || params.dig(:property, :images)
             uploaded_images = params[:images] || params.dig(:property, :images)
@@ -386,29 +449,72 @@ module Api
           end
 
           if params[:video]
-            if has_video
-              #return render json: { error: "Video upload limit reached. You can upload only one video." }, status: :unprocessable_entity
-            end
-        
             video_data = Base64.decode64(params[:video])
-
+          
             video_size_mb = video_data.bytesize / 1024.0 / 1024.0
-
+          
             if video_size_mb > max_video_size_mb
-              #return render json: { error: "Video size exceeds the maximum limit of #{max_video_size_mb} MB." }, status: :unprocessable_entity
+              # return render json: { error: "Video size exceeds the maximum limit of #{max_video_size_mb} MB." }, status: :unprocessable_entity
             end
-
+          
             compatible_formats = ['mp4', 'webm']
             video_format = FFMPEG::Movie.new(StringIO.new(video_data)).format_name.downcase
-
+          
             unless compatible_formats.include?(video_format)
-              #return render json: { error: "Invalid video format. Only #{compatible_formats.join(', ')} formats are allowed." }, status: :unprocessable_entity
+              # return render json: { error: "Invalid video format. Only #{compatible_formats.join(', ')} formats are allowed." }, status: :unprocessable_entity
             end
+          
+            movie = FFMPEG::Movie.new(StringIO.new(video_data))
+            if movie.duration > 30
+              # Trim the video to the first 30 seconds using ffmpeg
+              trimmed_video_data = trim_video(video_data, 30)
+          
+              # Attach the trimmed video after validation checks
+              @property.video.attach(io: StringIO.new(trimmed_video_data), filename: "video_#{Time.now.to_i}.#{video_format}")
+            else
+              # Attach the original video without trimming
+              @property.video.attach(io: StringIO.new(video_data), filename: "video_#{Time.now.to_i}.#{video_format}")
+            end
+          end          
+        end  
 
-            # attach the video after validation checks
-            @property.video.attach(io: StringIO.new(video_data), filename: "video_#{Time.now.to_i}.#{video_format}")
+        def trim_video(video_data, duration_limit)
+          temp_folder = Rails.root.join('tmp') # Adjust 'tmp' to your desired temp folder name
+        
+          # Ensure that the temp folder exists; create it if not
+          FileUtils.mkdir_p(temp_folder) unless File.directory?(temp_folder)
+        
+          Tempfile.open(['trimmed_video', '.mp4'], temp_folder) do |tempfile|
+            tempfile.binmode
+            tempfile.write(video_data)
+            tempfile.rewind
+        
+            # Use ffmpeg to trim the video to the specified duration
+            system("ffmpeg -i #{tempfile.path} -t #{duration_limit} -c copy #{tempfile.path}_trimmed.mp4")
+        
+            # Check if the trimming was successful
+            if $?.success?
+              trimmed_file_path = "#{tempfile.path}_trimmed.mp4"
+        
+              # Check if the trimmed file exists before attempting to read it
+              if File.exist?(trimmed_file_path)
+                # Read the trimmed video back into memory
+                trimmed_video_data = File.read(trimmed_file_path)
+        
+                # Ensure the tempfile is closed
+                tempfile.close
+        
+                return trimmed_video_data
+              else
+                tempfile.close
+                raise StandardError.new("Trimmed video file not found.")
+              end
+            else
+              tempfile.close
+              raise StandardError.new("Video trimming failed.")
+            end
           end
-        end        
+        end                   
         
         def image_urls(images)
           if images.present?
@@ -429,10 +535,12 @@ module Api
         # to search for a property using price and/or size range, use for example-> search?price[]=50000&price[]=100000
         def search_params
           params.permit(
-            :category_id, :location, :property_status, :number_of_bedrooms, :number_of_bathrooms,
-            :ratings, :furnishing, :fully_fitted_kitchen, :furnishing, :standby_generator,
-            :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, 
-            :security_service, :tv, :gym, :currency, others: [], price: [], size: []
+            :property_type, :is_property_live, :commercial_property_type, :location, :property_status, :number_of_bedrooms, :number_of_bathrooms,
+            :ratings, :currency, :page, :per_page, price: [], size: [], amenities: [
+            :fully_fitted_kitchen, :standby_generator, :internet_connectivity, :ac_rooms, :furnishing,
+            :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :parking_space, 
+            :living_room, :dining_room, :walled_gated, :others
+            ]
           )
         end
 
@@ -441,13 +549,14 @@ module Api
           properties = Property.where(is_property_live: true)
         
           properties = properties.where("property_status ILIKE ?", "%#{search_params[:property_status]}%") if search_params[:property_status].present?
-        
+          properties = properties.where("property_type ILIKE ?", "%#{search_params[:property_type]}%") if search_params[:property_type].present?
+
           if search_params[:min_price].present? && search_params[:max_price].present?
             price_range = search_params[:min_price].to_i..search_params[:max_price].to_i
 
             # If currency is specified in the search parameters, use it; otherwise, default to 'GHS'
             specified_currency = search_params[:currency].present? ? search_params[:currency].upcase : 'GHS'
-        
+         
             # Get unique currencies in the database
             unique_currencies = properties.distinct.pluck(:currency)
         
@@ -498,18 +607,69 @@ module Api
         
           sorted_properties = properties_with_score.sort_by { |item| item[:score] }.reverse
         
-          # Grab the top 5 similar properties
-          result = sorted_properties.take(5).map { |item| item[:property] }
-        
-          result.as_json(include: [:amenities])
-        end               
+          # Grab the top 16 similar properties
+          result = sorted_properties.take(16).map { |item| item[:property] }
+          serialized_properties = result.map { |property| serialize_property_with_media(property) }
+          serialized_properties.as_json(
+            include: {
+              amenities: {
+                only: [:fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :others, :walled_gated, :parking_space, :living_room, :dining_room, :waste_disposal]
+              },
+              property_detail: {
+                only: [:has_room_serviced, :number_of_storeys, :pet_friendly_compound, :compound_finishing, :finishing, :bathroom_type_and_location, :year_built, :street, :payment_plan, :state_of_land, :number_of_tenants, :type_of_meter, :source_of_water, :property_needs_renovation, :smoking_allowed, :tiled_areas, :ceiling_type]
+              },
+              public_facility: {
+                only: [:schools, :hospitals, :pharmacies, :others]
+              },
+              recreational_facility: {
+                only: [:restaurants, :pubs, :gyms, :others]
+              }
+            }
+          )
+        end
 
         def serialize_properties(properties)
           properties.map { |property| serialize_property(property) }
         end
 
+        def serialize_property_with_media(property)
+          serialized_property = serialize_property(property)
+        
+          if property.images.attached?
+            image_urls = property.images.map { |image| rails_blob_url(image) }
+            serialized_property[:images] = image_urls
+          end
+        
+          if property.video.attached?
+            serialized_property[:video] = video_url(property.video)
+          end
+        
+          # Set cache control headers for 2 weeks
+          # expires_in 336.hour, public: true
+
+          # Set cache control headers for 1 hour
+          expires_in 1.hour, public: true
+
+          serialized_property
+        end               
+
         def serialize_property(property)
-          property.as_json(include: [:amenities])
+          property.as_json(
+            include: {
+              amenities: {
+                only: [:fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :others, :walled_gated, :parking_space, :living_room, :dining_room, :waste_disposal]
+              },
+              property_detail: {
+                only: [:has_room_serviced, :number_of_storeys, :pet_friendly_compound, :compound_finishing, :finishing, :bathroom_type_and_location, :year_built, :street, :payment_plan, :state_of_land, :number_of_tenants, :type_of_meter, :source_of_water, :property_needs_renovation, :smoking_allowed, :tiled_areas, :ceiling_type]
+              },
+              public_facility: {
+                only: [:schools, :hospitals, :pharmacies, :others]
+              },
+              recreational_facility: {
+                only: [:restaurants, :pubs, :gyms, :others]
+              }
+            }
+          )
         end
 
         def set_property

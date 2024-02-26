@@ -5,6 +5,7 @@ Rails.application.configure do
 
   # Code is not reloaded between requests.
   config.cache_classes = true
+  config.active_storage.variant_processor = :mini_magick
 
   #config.active_storage.replace_on_assign_to_many = false
 

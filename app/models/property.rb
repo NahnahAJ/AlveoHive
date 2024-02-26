@@ -1,18 +1,25 @@
 class Property < ApplicationRecord
   belongs_to :user
-  belongs_to :category
-  has_many :amenities
+
+  has_one :property_detail
+  has_one :public_facility
+  has_one :recreational_facility
+  has_one :amenities, class_name: 'Amenity'
+  accepts_nested_attributes_for :amenities
+  accepts_nested_attributes_for :property_detail
+  accepts_nested_attributes_for :public_facility
+  accepts_nested_attributes_for :recreational_facility
 
   has_many_attached :images
   has_one_attached :video
 
   validates :currency, presence: true, inclusion: { in: %w(USD GHS EUR GBP), message: "%{value} is not a valid currency. Options are USD, GHS, EUR and GBP" }
 
-  validate :validate_image_limit
-  validate :validate_image_size
-  validate :validate_image_types
+  # validate :validate_image_limit
+  # validate :validate_image_size
+  # validate :validate_image_types
 
-  validate :validate_video_size
+  # validate :validate_video_size
 
 
   scope :filter_by_params, ->(params) {
@@ -25,6 +32,8 @@ class Property < ApplicationRecord
     result = result.where(number_of_bathrooms: params[:number_of_bathrooms]) if params[:number_of_bathrooms].present?
     result = result.where(ratings: params[:ratings]) if params[:ratings].present?
     result = result.where("LOWER(furnishing) LIKE ?", "%#{params[:furnishing].downcase}%") if params[:furnishing].present?
+    result = result.where("LOWER(property_type) = ?", params[:property_type].downcase) if params[:property_type].present?  
+
 
     if params[:price].present? && params[:currency].present?
       price_range = params[:price].map(&:to_i)
@@ -38,17 +47,22 @@ class Property < ApplicationRecord
         result = result.where(price: price_range[0]..price_range[1])
       else
         # Fetch conversion rates from the database
-        currency_record = Currency.find_by(name: specified_currency)
-        conversion_rates = currency_record&.conversion_rates || {}
-
-        # Build a dynamic SQL expression for price conversion
-        conversion_expression = unique_currencies.map do |currency|
-          conversion_rate = conversion_rates[currency] || 1.0
-          "(CASE WHEN currency = '#{specified_currency}' THEN price ELSE price * #{conversion_rate} END)"
-        end.join(' + ')
-
-        # Use the dynamic expression in the query
-        result = result.where("#{conversion_expression} BETWEEN ? AND ?", price_range[0], price_range[1])
+        if unique_currencies.present?
+          currency_record = Currency.find_by(name: specified_currency)
+          conversion_rates = currency_record&.conversion_rates || {}
+        
+          # Build a dynamic SQL expression for price conversion
+          conversion_expression = unique_currencies.map do |currency|
+            conversion_rate = conversion_rates[currency] || 1.0
+            "(CASE WHEN currency = '#{specified_currency}' THEN price ELSE price * #{conversion_rate} END)"
+          end.join(' + ')
+        
+          # Use the dynamic expression in the query
+          result = result.where("#{conversion_expression} BETWEEN ? AND ?", price_range[0], price_range[1])
+        else
+          # If unique_currencies is empty, set a default condition
+          result = result.where("price BETWEEN ? AND ?", price_range[0], price_range[1])
+        end
       end
     # If currency is not specified, perform currency and price comparison using 'GHS' as the default currency
     elsif params[:price].present?
@@ -90,12 +104,6 @@ class Property < ApplicationRecord
       result = or_conditions.inject(:or)
     end
 
-
-
-
-      
-      
-
     if params[:size].present?
       size_range = params[:size].map(&:to_i)
       result = result.where(size: size_range[0]..size_range[1])
@@ -104,54 +112,49 @@ class Property < ApplicationRecord
     if params[:amenities].present?
       amenities_conditions = {}
       params[:amenities].each do |amenity, value|
-        if Property.column_names.include?(amenity) && Property.type_for_attribute(amenity).type == :boolean
-          result = result.joins(:amenities).where("LOWER(amenities.#{amenity}) = ?", value.downcase)
+        if Amenity.column_names.include?(amenity) && Amenity.type_for_attribute(amenity).type == :boolean
+          result = result.joins(:amenities).where("amenities.#{amenity} = ?", value)
         else
-          amenities_conditions[amenity] = value
+          amenities_conditions["amenities.#{amenity}"] = value
         end
       end
       result = result.where(amenities_conditions)
     end
-
-    if params[:others].present?
-      others_conditions = params[:others].map { |other| "LOWER(amenities.others ->> 0) LIKE ?" }
-      result = result.joins(:amenities).where(others_conditions.join(' AND '), *params[:others].map { |other| "%#{other.downcase}%" })
-    end
-
+    
     result
   }
 
 
   private
 
-  def validate_image_limit
-    if images.attached? && images.count > 5
-      errors.add(:images, 'cannot be more than 5')
-    end
-  end
+  # def validate_image_limit
+  #   if images.attached? && images.count > 5
+  #     errors.add(:images, "cannot be more than 5. You tried uploading #{images.count} images")
+  #   end
+  # end
 
-  def validate_image_size
-    images.each do |image|
-      if image.byte_size > 5.megabytes
-        errors.add(:images, 'should be less than 5MB')
-      end
-    end
-  end
+  # def validate_image_size
+  #   images.each do |image|
+  #     if image.byte_size > 5.megabytes
+  #       errors.add(:images, 'should be less than 5MB')
+  #     end
+  #   end
+  # end
 
-  def validate_image_types
-    allowed_types = %w[image/jpeg image/jpg image/png]
+  # def validate_image_types
+  #   allowed_types = %w[image/jpeg image/jpg image/png]
 
-    images.each do |image|
-      unless allowed_types.include?(image.content_type)
-        errors.add(:images, 'should be JPEG, JPG, or PNG format')
-      end
-    end
-  end
+  #   images.each do |image|
+  #     unless allowed_types.include?(image.content_type)
+  #       errors.add(:images, 'should be JPEG, JPG, or PNG format')
+  #     end
+  #   end
+  # end
 
-  def validate_video_size
-    if video.attached? && video.byte_size > 60.megabytes
-      errors.add(:video, 'size should be 60MB or less')
-    end
-  end
+  # def validate_video_size
+  #   if video.attached? && video.byte_size > 60.megabytes
+  #     errors.add(:video, 'size should be 60MB or less')
+  #   end
+  # end
 
 end

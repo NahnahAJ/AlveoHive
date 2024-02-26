@@ -2,6 +2,8 @@
 
 class Users::SessionsController < Devise::SessionsController
 include RackSessionFix
+  # TODO: remove the below in production
+  skip_before_action :verify_authenticity_token
   # before_action :configure_sign_in_params, only: [:create]
   before_action :authenticate_user!
 
@@ -10,7 +12,7 @@ include RackSessionFix
 
   def respond_with(resource, _opts = {})
   render json: {
-    status: {code: 200, message: 'Logged in sucessfully.'},
+    status: {code: 200, message: 'Logged in successfully.'},
     data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
   }, status: :ok
 end

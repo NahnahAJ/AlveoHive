@@ -47,6 +47,22 @@ gem 'mini_magick', '4.11.0'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'fastimage'
+# gem 'will_paginate'
+gem 'kaminari'
+gem 'streamio-ffmpeg'
+
+gem 'sidekiq'
+gem 'whenever'
+
+gem 'activeadmin'
+gem 'sprockets-rails'
+gem "sassc-rails"
+gem 'country-select'
+gem 'rest-client'
+
+
+gem 'dotenv-rails', groups: [:development, :test]
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

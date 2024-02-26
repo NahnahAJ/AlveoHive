@@ -10,7 +10,7 @@ class User < ApplicationRecord
          has_many :properties
          has_many :articles
          has_many :enquiries
-       
+
          validates :firstname, uniqueness: true
           validates :lastname, uniqueness: true
          validates :email, presence: true, uniqueness: true

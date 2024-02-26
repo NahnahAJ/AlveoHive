@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_24_185836) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "active_admin_comments", force: :cascade do |t|
+    t.string "namespace"
+    t.text "body"
+    t.string "resource_type"
+    t.bigint "resource_id"
+    t.string "author_type"
+    t.bigint "author_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
+    t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
+    t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -42,6 +56,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "admin_users", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_admin_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
+  end
+
   create_table "amenities", force: :cascade do |t|
     t.bigint "property_id", null: false
     t.boolean "fully_fitted_kitchen"
@@ -57,7 +83,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.boolean "gym"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "others", default: []
+    t.string "others", default: "[]"
+    t.boolean "walled_gated", default: false
+    t.boolean "parking_space", default: false
+    t.boolean "living_room", default: false
+    t.boolean "dining_room", default: false
+    t.boolean "waste_disposal", default: false
     t.index ["property_id"], name: "index_amenities_on_property_id"
   end
 
@@ -102,7 +133,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
 
   create_table "properties", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "category_id", null: false
     t.string "name"
     t.string "location"
     t.string "property_status"
@@ -122,9 +152,56 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.float "longitude", default: 0.0
     t.string "currency", default: "GHS", null: false
     t.integer "hits_count", default: 0
-    t.index ["category_id"], name: "index_properties_on_category_id"
+    t.string "property_type"
+    t.string "commercial_property_type"
     t.index ["currency"], name: "index_properties_on_currency"
     t.index ["user_id"], name: "index_properties_on_user_id"
+  end
+
+  create_table "property_details", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "has_room_serviced", default: false
+    t.integer "number_of_storeys"
+    t.boolean "pet_friendly_compound", default: false
+    t.string "compound_finishing"
+    t.string "finishing"
+    t.string "bathroom_type_and_location"
+    t.string "year_built"
+    t.string "street"
+    t.string "payment_plan"
+    t.string "state_of_land"
+    t.string "number_of_tenants"
+    t.string "type_of_meter"
+    t.string "source_of_water"
+    t.boolean "property_needs_renovation", default: false
+    t.boolean "smoking_allowed", default: false
+    t.boolean "tiled_areas", default: false
+    t.string "ceiling_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_property_details_on_property_id"
+  end
+
+  create_table "public_facilities", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "schools", default: false
+    t.boolean "hospitals", default: false
+    t.boolean "pharmacies", default: false
+    t.string "others", default: "{}"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_public_facilities_on_property_id"
+  end
+
+  create_table "recreational_facilities", force: :cascade do |t|
+    t.bigint "property_id", null: false
+    t.boolean "restaurants", default: false
+    t.boolean "pubs", default: false
+    t.boolean "gyms", default: false
+    t.string "others", default: "{}"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id"], name: "index_recreational_facilities_on_property_id"
   end
 
   create_table "socials", force: :cascade do |t|
@@ -152,6 +229,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
     t.datetime "updated_at", null: false
     t.text "user_type"
     t.string "subscription"
+    t.datetime "last_subscription_date"
+    t.string "reference"
     t.index ["user_id"], name: "index_user_details_on_user_id"
   end
 
@@ -181,8 +260,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_30_131246) do
   add_foreign_key "articles", "users"
   add_foreign_key "enquiries", "properties"
   add_foreign_key "enquiries", "users"
-  add_foreign_key "properties", "categories"
   add_foreign_key "properties", "users"
+  add_foreign_key "property_details", "properties"
+  add_foreign_key "public_facilities", "properties"
+  add_foreign_key "recreational_facilities", "properties"
   add_foreign_key "socials", "users"
   add_foreign_key "user_details", "users"
 end
