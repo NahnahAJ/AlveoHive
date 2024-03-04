@@ -2,13 +2,16 @@
 
 class Users::RegistrationsController < Devise::RegistrationsController
   include RackSessionFix
+    # TODO: remove the below in production
+    skip_before_action :verify_authenticity_token
+
     before_action :configure_sign_up_params, only: [:create]
     # before_action :configure_account_update_params, only: [:update]
     respond_to :json
   
     def configure_sign_up_params
       devise_parameter_sanitizer.permit(:sign_up, keys: [:firstname, :lastname, :role])
-    end  
+    end
     
     private
   

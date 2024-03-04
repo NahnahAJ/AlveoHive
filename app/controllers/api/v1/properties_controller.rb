@@ -5,6 +5,8 @@ module Api
       require 'streamio-ffmpeg'
 
       class Api::V1::PropertiesController < ApplicationController
+      # TODO: remove the below in production
+      skip_before_action :verify_authenticity_token
         #before_action :authenticate_user!, except: [:index, :show]
         # load_and_authorize_resource
 
