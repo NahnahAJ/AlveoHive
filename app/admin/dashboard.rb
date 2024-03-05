@@ -36,7 +36,9 @@ ActiveAdmin.register_page "Dashboard" do
     panel "Recent Premium Subscribers" do
       ul do
         UserDetail.where(subscription: "subscribed").joins(:user).order("users.created_at DESC").limit(5).map do |user_detail|
-          li link_to(user_detail.user.username, admin_user_path(user_detail.user))
+          li link_to(
+            user_detail.user.firstname + " " + user_detail.user.lastname, admin_user_path(user_detail.user)
+          )
         end
       end
     end
