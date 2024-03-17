@@ -5,7 +5,7 @@ ActiveAdmin.register UserDetail do
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  permit_params :user_id, :name, :bio, :address, :company_name, :mobile_phone, :office_phone, :user_type, :subscription, :last_subscription_date
+  permit_params :user_id, :reference, :name, :bio, :address, :company_name, :mobile_phone, :office_phone, :user_type, :subscription, :last_subscription_date
   filter :profile_picture
   
   #

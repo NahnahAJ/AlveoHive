@@ -1,5 +1,7 @@
 class WebhooksController < ApplicationController
-    protect_from_forgery with: :null_session
+    # protect_from_forgery with: :null_session
+    # TODO: remove the below in production
+    skip_before_action :verify_authenticity_token
 
     ALLOWED_IPS = ['52.31.139.75', '52.49.173.169', '52.214.14.220'].freeze
 
@@ -10,17 +12,21 @@ class WebhooksController < ApplicationController
         head :unauthorized and return
       end
 
-      # Validate the event using signature validation
-      if valid_paystack_signature?
-        # Retrieve the request's body
-        event = params[:event]
+    # # Validate the event using signature validation
+    # if !valid_paystack_signature?
 
-        # Log the raw event for debugging purposes
-        Rails.logger.info("Paystack Webhook Received: #{event}")
+      # Retrieve the request's body
+      event = params[:event]
+      # Retrieve the data body
+      data = params[:data]
 
-        # Process the event
-        handle_paystack_event(event)
-      end
+      # Log the raw event for debugging purposes
+      Rails.logger.info("Paystack Webhook Received: #{event}")
+
+      # Process the event
+      handle_paystack_event(event, data)
+
+      # end
   
       head :ok
     end
@@ -48,17 +54,17 @@ class WebhooksController < ApplicationController
       end
     end
 
-    def handle_paystack_event(event)
+    def handle_paystack_event(event, data)
       # Log the processed event
-      Rails.logger.info("Handling Paystack Event: #{event['event']}")
+      Rails.logger.info("Handling Paystack Event: #{event}")
 
       # Implement logic to handle different Paystack events
-      case event['event']
+      case event
       when 'charge.success'
         # Process successful charge event
         Rails.logger.info('Charge Successful: Processing...')
         # Handle successful charge
-        handle_charge_success(event['data'])
+        handle_charge_success(data)
 
       when 'refund.processed'
         # Process refund processed event
@@ -66,7 +72,7 @@ class WebhooksController < ApplicationController
       # Add more cases for other supported events
       else
         # Handle unsupported events or log them
-        Rails.logger.warn("Unsupported Paystack Event: #{event['event']}")
+        Rails.logger.warn("Unsupported Paystack Event: #{event}")
       end
     end
 
@@ -74,7 +80,7 @@ class WebhooksController < ApplicationController
       reference = data['reference']
 
       # Find the user by reference in your database
-      user_detail = UserDetails.find_by(reference: reference)
+      user_detail = UserDetail.find_by(reference: reference)
 
       if user_detail
         # Update user subscription details
