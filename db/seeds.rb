@@ -29,7 +29,7 @@ article1 = Article.create(
   title: "To Buy or To Build",
   summary: "When it comes to acquiring a property, there are two main options: buying an existing property or building a new one. Both options have their own advantages and disadvantages, and the best choice depends on your specific needs and circumstances...",
   content: "The full content goes here...",
-  image: "https://www.alveohive.com/uploads/image/pexels-kindel-media-7578884.jpg?v=20190417",
+  image: "https://res.cloudinary.com/db3ckadxp/image/upload/v1710278816/pexels-pixabay-534124_ym7kf5.jpg",
   category_id: 1
 )
 
@@ -38,7 +38,7 @@ article2 = Article.create(
   title: "Property Listing Guide - Alveo Hive",
   summary: "Welcome to Alveo Hive, your real estate companion that is committed to putting some spark into the industry by using cutting-edge technology and innovative techniques...",
   content: "The full content goes here...",
-  image: "https://www.alveohive.com/uploads/image/sergey-zolkin-_uey8ati6d0-unsplash.jpg?v=20190417",
+  image: "https://res.cloudinary.com/db3ckadxp/image/upload/v1710279227/sergey-zolkin-_UeY8aTI6d0-unsplash_fjm9ih.jpg",
   category_id: 3
 )
 
@@ -47,7 +47,7 @@ article3 = Article.create(
   title: "Keys To Becoming A Successful Property Manager",
   summary: "Becoming a successful property manager requires a combination of skills, knowledge, and experience. Here are some tips to help you succeed in this competitive industry...",
   content: "The full content goes here...",
-  image: "https://www.alveohive.com/uploads/image/mission-bg.jpg?v=20190417",
+  image: "https://res.cloudinary.com/db3ckadxp/image/upload/v1710279112/pexels-pixabay-460695_umoeq0.jpg",
   category_id: 2
 )
 
@@ -56,7 +56,7 @@ article4 = Article.create(
   title: "The Future of Real Estate",
   summary: "The real estate industry is constantly evolving, and it is important to stay ahead of the curve. Here are some trends that are shaping the future of real estate...",
   content: "The full content goes here...",
-  image: "https://www.alveohive.com/uploads/image/page-title-background.jpg?v=20190417",
+  image: "https://res.cloudinary.com/db3ckadxp/image/upload/v1710279356/pexels-sevenstorm-juhaszimrus-418323_gimflz.jpg",
   category_id: 1
 )
 
