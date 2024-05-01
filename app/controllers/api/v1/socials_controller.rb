@@ -1,7 +1,9 @@
 module Api
   module V1
     class SocialsController < ApplicationController
-      load_and_authorize_resource      
+      
+      skip_before_action :verify_authenticity_token
+      
       def index
         # code to retrieve all socials
         @socials = Social.all
@@ -18,13 +20,13 @@ module Api
         # code to create a new social
         @social = Social.create(social_params)
         render json: @social
-      end
+        end
 
-      def update
-        # code to update an existing social by id
-        @social = Social.find(params[:id])
-        @social.update(social_params)
-        render json: @social
+        def update
+          # code to update an existing social by id
+          @social = Social.find(params[:id])
+          @social.update(social_params)
+          render json: @social
       end
 
       def destroy

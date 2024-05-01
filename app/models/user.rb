@@ -11,12 +11,11 @@ class User < ApplicationRecord
          has_many :articles
          has_many :enquiries
 
-         validates :firstname, uniqueness: true
-         validates :lastname, uniqueness: true
-         validates :email, presence: true, uniqueness: true
-         validates :password, presence: true, length: { minimum: 6 }
+         validates :email, presence: true, uniqueness: true, on: :create
+         validates :password, presence: true, length: { minimum: 6 }, on: :create
 
     def admin?
       role == 'admin'
     end
+
 end
