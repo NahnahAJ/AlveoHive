@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  devise_for :admin_users, ActiveAdmin::Devise.config
+  ActiveAdmin.routes(self)
   get '/current_user', to: 'current_user#index'
     devise_for :users, path: '', path_names: {
       sign_in: 'login',
@@ -10,17 +12,37 @@ Rails.application.routes.draw do
       registrations: 'users/registrations'
     }
 
+    namespace :admin do
+      resources :properties do
+        member do
+          put :approve
+        end
+      end
+    end
+
+    # successful payment handling
+    post '/payments/success', to: 'payments#success'
+    # mobile money payment endpoint
+    post '/payments/mobile_money', to: 'payments#mobile_money'
+    # send otp endpoint
+    post '/payments/submit_otp', to: 'payments#submit_otp'
+    # webhook url for listening for events from paystack
+    post '/webhooks/paystack', to: 'webhooks#paystack'
+
+    # auth url for checking subscription status, as well as authentication status
+    get '/auth/authenticated', to: 'auth#authenticated'
+
 namespace :api do 
   namespace :v1 do 
 
-    resources :users, only: [:index, :create, :show, :destroy] do
+    resources :users, only: [:index, :create, :show, :destroy, :update] do
       resources :articles, only: [:index], controller: 'articles', action: 'user_articles'
       resources :enquiries, only: [:index], controller: 'enquiries', action: 'user_enquiries'
       resources :properties, only: [:index], controller: 'properties', action: 'user_properties'
     end
 
     resources :user_details, only: [:index, :create, :show, :destroy, :update] do
-    resources :profile_pictures, only: [:index, :show]
+    resources :profile_pictures, only: [:index, :show, :create, :destroy, :update]
   end
   
     resources :socials, only: [:index, :create, :show, :update, :destroy]
@@ -58,14 +80,19 @@ namespace :api do
         get 'pending_properties'
       end
 
+    resources :schools do
+      collection do
+        get 'get_schools'
+      end
+    end
 
-      resources :enquiries, only: [:index], controller: 'enquiries', action: 'property_enquiries'
-      get 'export_pdf', on: :member
-      post 'rate', on: :member
-      delete 'delete_video', on: :member
-      delete 'images/:image_id', to: 'properties#delete_image', on: :member, as: 'delete_image'
-      delete 'clear_images', to: 'properties#clear_images', on: :member, as: 'clear_images'
-   
+    resources :enquiries, only: [:index], controller: 'enquiries', action: 'property_enquiries'
+    get 'export_pdf', on: :member
+    post 'rate', on: :member
+    delete 'delete_video', on: :member
+    delete 'images/:image_id', to: 'properties#delete_image', on: :member, as: 'delete_image'
+    delete 'clear_images', to: 'properties#clear_images', on: :member, as: 'clear_images'
+  
       member do
         get 'get_images'
         get 'get_video'

@@ -42,7 +42,8 @@
 
   <h1>Property Details</h1>
   <div class="property-details">
-    <p><strong>Name:</strong> <%= property.name %></p>
+  <p><strong>View Property On Website:</strong> <a href="http://localhost:3000/property/<%= property.id %>">Click here</a></p>
+  <p><strong>Name:</strong> <%= property.name %></p>
     <p><strong>Location:</strong> <%= property.location %></p>
     <p><strong>Property Status:</strong> <%= property.property_status %></p>
     <p><strong>Overview:</strong> <%= property.property_overview %></p>
@@ -60,61 +61,68 @@
       <%= property.ratings %>
     </p>
     <p><strong>Furnishing:</strong> <%= property.furnishing %></p>
+    <% if property.size.present? %>
     <p><strong>Size:</strong> <%= property.size %> sq. ft</p>
-    <p><strong>Price:</strong> GHS <%= number_to_currency(property.price, unit: '') %></p>
+  <% end %>
+      <p><strong>Price:</strong> GHS <%= number_to_currency(property.price, unit: '') %></p>
   </div>
 
   <h2>Amenities</h2>
-  <% if amenities.present? %>
+  <% if amenities.present? && amenities != {} %>
     <ul class="amenities-list">
-      <% amenities.each do |amenity| %>
-        <% if amenity.fully_fitted_kitchen %>
+        <% if amenities.fully_fitted_kitchen %>
           <li>Fully Fitted Kitchen</li>
         <% end %>
 
-        <% if amenity.furnishing %>
+        <% if amenities.furnishing %>
           <li>Furnishing</li>
         <% end %>
 
-        <% if amenity.standby_generator %>
+        <% if amenities.standby_generator %>
           <li>Standby Generator</li>
         <% end %>
 
-        <% if amenity.internet_connectivity %>
+        <% if amenities.internet_connectivity %>
           <li>Internet Connectivity</li>
         <% end %>
 
-        <% if amenity.ac_rooms %>
+        <% if amenities.ac_rooms %>
           <li>Air Conditioned Rooms</li>
         <% end %>
 
-        <% if amenity.refridgerator %>
+        <% if amenities.refridgerator %>
           <li>Refrigerator</li>
         <% end %>
 
-        <% if amenity.cctv_camera %>
+        <% if amenities.cctv_camera %>
           <li>CCTV Camera</li>
         <% end %>
 
-        <% if amenity.washroom %>
+        <% if amenities.washroom %>
           <li>Washroom</li>
         <% end %>
 
-        <% if amenity.security_service %>
+        <% if amenities.security_service %>
           <li>Security Service</li>
         <% end %>
 
-        <% if amenity.tv %>
+        <% if amenities.tv %>
           <li>Television</li>
         <% end %>
 
-        <% if amenity.gym %>
+        <% if amenities.gym %>
           <li>Gym</li>
         <% end %>
 
-        <% if amenity.others.present? %>
-          <li>Other Amenities: <%= amenity.others %></li>
-        <% end %>
+        <% if amenities.others.present? %>
+        <li>Other Amenities:
+          <ul>
+            <% amenities.others.each do |other_amenity| %>
+              <li><%= other_amenity %></li>
+            <% end %>
+          </ul>
+        </li>
+      
       <% end %>
     </ul>
   <% else %>

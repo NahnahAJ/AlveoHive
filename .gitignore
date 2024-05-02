@@ -39,3 +39,9 @@ config/credentials.yml.enc
 
 # Ignore Gemfile.lock
 /Gemfile.lock
+
+# Ignore schema
+/db/schema.rb
+
+# Ignore .env file
+/.env
