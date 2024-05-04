@@ -83,7 +83,7 @@ module Api
 
         # GET /api/v1/properties/:id
         def show
-          properties = Property.where(id: params[:id])
+          properties = Property.where(id: params[:id], is_property_live: true)
 
           if properties.present?
             serialized_properties = properties.map { |property| serialize_property_with_media(property) }
@@ -157,6 +157,7 @@ module Api
 
         # DELETE /api/v1/properties/:id/clear_images
         def clear_images
+          @property = Property.find(params[:id])
           @property.images.purge
           render json: { message: 'All images cleared successfully' }
         end
