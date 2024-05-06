@@ -1,8 +1,8 @@
 module Api
   module V1
     class UserDetailsController < ApplicationController
-      load_and_authorize_resource      
-      
+      skip_before_action :verify_authenticity_token
+            
       def index
         @user_details = UserDetail.all
         render json: @user_details
