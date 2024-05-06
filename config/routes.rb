@@ -28,9 +28,11 @@ Rails.application.routes.draw do
     post '/payments/submit_otp', to: 'payments#submit_otp'
     # webhook url for listening for events from paystack
     post '/webhooks/paystack', to: 'webhooks#paystack'
+    # endpoint for updating the user payment reference
+    post '/payments/update_user_reference/:id', to: 'payments#update_user_reference'
 
-    # auth url for checking subscription status, as well as authentication status
-    get '/auth/authenticated', to: 'auth#authenticated'
+    # url for checking subscription status
+    get '/subscription/subscribed', to: 'subscription#subscribed'
 
 namespace :api do 
   namespace :v1 do 

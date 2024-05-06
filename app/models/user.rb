@@ -18,4 +18,17 @@ class User < ApplicationRecord
       role == 'admin'
     end
 
+
+    def subscribed?
+      user_details = UserDetail.find_by(user_id: id)
+      
+      # Check if user_details exist and subscription is 'subscribed'
+      return false unless user_details && user_details.subscription == 'subscribed'
+  
+      # Check if last_subscription_date is within the recent 1 year
+      last_subscription_date = user_details.last_subscription_date
+      return false unless last_subscription_date && last_subscription_date >= 1.year.ago
+  
+      true
+    end
 end

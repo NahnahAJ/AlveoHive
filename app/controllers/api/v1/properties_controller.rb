@@ -83,7 +83,7 @@ module Api
 
         # GET /api/v1/properties/:id
         def show
-          properties = Property.where(id: params[:id])
+          properties = Property.where(id: params[:id], is_property_live: true)
 
           if properties.present?
             serialized_properties = properties.map { |property| serialize_property_with_media(property) }
@@ -96,18 +96,29 @@ module Api
         # POST /api/v1/properties
         def create
           @property = Property.new(property_params)
-
           handle_file_uploads
 
-          if @property.save
-            # Send property submission email to Alveohive
-            # PropertyApprovalMailer.property_submitted_for_review(@property).deliver_now
-            render json: serialize_property_with_media(@property), status: :created
+          user_id = property_params[:user_id]
+          user = User.find_by(id: user_id)
+          user_details = UserDetail.find_by(user_id: user_id)
+
+          subscription_status = user_details&.subscription
+          last_subscription_date = user_details&.last_subscription_date
+          # live_properties_count = Property.where(user_id: user_id, is_property_live: true).count
+          properties_count = Property.where(user_id: user_id).count
+
+          if (subscription_status == 'subscribed' && last_subscription_date.present? && last_subscription_date >= 1.year.ago) ||
+             (subscription_status != 'subscribed' && properties_count < 3)
+            if @property.save
+              render json: serialize_property_with_media(@property), status: :created
+            else
+              render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
+            end
           else
-            puts(@property.errors.full_messages)
-            render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
+            render json: { message: "Please upgrade/renew your subscription for unlimited property listing." }, status: :unauthorized
           end
         end
+
 
         # PATCH/PUT /api/v1/properties/:id
         def update
@@ -146,6 +157,7 @@ module Api
 
         # DELETE /api/v1/properties/:id/clear_images
         def clear_images
+          @property = Property.find(params[:id])
           @property.images.purge
           render json: { message: 'All images cleared successfully' }
         end
@@ -645,12 +657,9 @@ module Api
           if property.video.attached?
             serialized_property[:video] = video_url(property.video)
           end
-        
-          # Set cache control headers for 2 weeks
-          # expires_in 336.hour, public: true
 
-          # Set cache control headers for 1 hour
-          expires_in 1.hour, public: true
+          # Set cache control headers for 15 minutes
+          expires_in 15.minutes, public: true
 
           serialized_property
         end               

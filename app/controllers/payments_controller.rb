@@ -87,6 +87,23 @@ class PaymentsController < ApplicationController
       end
     end
 
+    # POST /payments/update_user_reference/:id
+    def update_user_reference
+      user_id = params[:id]
+      reference = params[:reference]
+  
+      user = User.find_by(id: user_id)
+  
+      if user.present?
+        user_detail = user.user_detail || user.build_user_detail
+        user_detail.update(reference: reference)
+  
+        render json: { message: 'Reference updated successfully', status: true }
+      else
+        render json: { message: 'User not found', status: false }
+      end
+    end
+
 
     private
   

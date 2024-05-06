@@ -29,13 +29,13 @@
 /config/master.key
 
 # Ignore secret files
-config/secrets.yml
+/config/secrets.yml
 
 # Ignore database file
-config/database.yml
+/config/database.yml
 
 # Ignore credentials file
-config/credentials.yml.enc
+/config/credentials.yml.enc
 
 # Ignore Gemfile.lock
 /Gemfile.lock
