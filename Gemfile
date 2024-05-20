@@ -41,8 +41,7 @@ gem 'devise-jwt'
 gem 'jsonapi-serializer'
 
 gem 'cancancan'
-
-gem 'carrierwave', '2.1.0'
+gem 'carrierwave'
 gem 'mini_magick', '4.11.0'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
@@ -73,4 +72,3 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
-

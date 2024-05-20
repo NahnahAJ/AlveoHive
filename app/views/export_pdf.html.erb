@@ -117,11 +117,12 @@
         <% if amenities.others.present? %>
         <li>Other Amenities:
           <ul>
-            <% amenities.others.each do |other_amenity| %>
-              <li><%= other_amenity %></li>
+            <% amenities.others.split(',').each do |other_amenity| %>
+              <li><%= other_amenity.strip %></li>
             <% end %>
           </ul>
         </li>
+      
       
       <% end %>
     </ul>
