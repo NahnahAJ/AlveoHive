@@ -184,8 +184,13 @@ module Api
 
         # GET /api/v1/properties/search
         def search
-          # returns approved properties that match the search criteria, or similar properties if there's no matching result
-          @properties = Property.filter_by_params(search_params).where(is_property_live: true).order(created_at: :desc).page(params[:page]).per(params[:per_page] || 30)
+          # Join properties with user_details to access subscription status
+          @properties = Property.joins(user: :user_detail)
+                                .where(is_property_live: true)
+                                .filter_by_params(search_params)
+                                .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
+                                .page(params[:page])
+                                .per(params[:per_page] || 30)
 
           if @properties.empty?
             # if no exact match is found, provide similar items as suggestions
@@ -193,7 +198,6 @@ module Api
             render json: {
               similar_properties: similar_items
             }, status: :not_found
-
           else
             serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
             render json: {
@@ -224,7 +228,11 @@ module Api
         # returns a list of all properties that have been approved for listing
         # GET /api/v1/properties/live_properties
         def live_properties
-          live_properties = Property.where(is_property_live: true).order(created_at: :desc).page(params[:page]).per(params[:per_page] || 30)
+          live_properties = Property.joins(user: :user_detail)
+                                    .where(is_property_live: true)
+                                    .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
+                                    .page(params[:page])
+                                    .per(params[:per_page] || 30)
 
           serialized_properties = live_properties.map { |property| serialize_property_with_media(property) }
 
