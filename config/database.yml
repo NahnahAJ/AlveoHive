@@ -24,9 +24,9 @@ default: &default
 
 development:
   <<: *default
-  database: alveo_hive_api_development
-  username: postgres
-  password: Zegabd@#279108222
+  database: ''
+  username: ''
+  password: ''
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -60,9 +60,9 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: alveo_hive_api_test
-  username: postgres
-  password: Zegabd@#279108222
+  database: ''
+  username: ''
+  password: ''
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -87,5 +87,5 @@ test:
 production:
   <<: *default
   database: alveo_hive_api_production
-  username: alveo_hive_api
+  username: alvekdkh
   password: <%= ENV["ALVEO_HIVE_API_DATABASE_PASSWORD"] %>

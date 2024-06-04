@@ -128,7 +128,7 @@ class PaymentsController < ApplicationController
     end
 
     def create_mobile_money_charge(amount, email, phone, provider)
-      secret_key = ENV['PAYSTACK_SECRET_KEY'] # Replace with actual Paystack secret key
+      secret_key = ENV['PAYSTACK_SECRET_KEY']
       url = 'https://api.paystack.co/charge'
 
       payload = {

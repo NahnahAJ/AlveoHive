@@ -52,7 +52,6 @@ module Api
           # Generate full URLs for the images
           @property.images.limit(5).each do |image|
             image_path = rails_blob_url(image, only_path: true)
-            #full_url = "#{"http://localhost:3000"}#{image_path}"
             @image_urls << image_path
           end
 
