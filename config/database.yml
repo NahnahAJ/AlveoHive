@@ -88,4 +88,5 @@ production:
   <<: *default
   database: alveo_hive_api_production
   username: rails
-  password: <%= ENV["ALVEO_HIVE_API_DATABASE_PASSWORD"] %>
+  password: Hive@Alveo33
+  # password: <%= ENV["ALVEO_HIVE_API_DATABASE_PASSWORD"] %>
