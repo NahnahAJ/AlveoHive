@@ -7,21 +7,19 @@
 #   Character.create(name: "Luke", movie: movies.first)
 
 
+# user1 = User.create(firstname: "Test", lastname: "User", email: "test@example.com", password: "password", role: "Property Seeker")
 
-
-user1 = User.create(firstname: "Test", lastname: "User", email: "test@example.com", password: "password", role: "Property Seeker")
-
-user_detail = UserDetail.create(
-  name: "John Doe",
-  bio: "A brief bio goes here...",
-  address: "123 Main St, City, Country",
-  country: "Country Name",
-  company_name: "Example Company",
-  mobile_phone: "123-456-7890",
-  office_phone: "987-654-3210",
-  user_type: "Regular",
-  user_id: 1
-)
+# user_detail = UserDetail.create(
+#   name: "John Doe",
+#   bio: "A brief bio goes here...",
+#   address: "123 Main St, City, Country",
+#   country: "Country Name",
+#   company_name: "Example Company",
+#   mobile_phone: "123-456-7890",
+#   office_phone: "987-654-3210",
+#   user_type: "Regular",
+#   user_id: 1
+# )
 
 category1 = Category.create(name: "Apartment", parent_category: "Article")
 category2 = Category.create(name: "House", parent_category: "Article")
@@ -63,11 +61,10 @@ article4 = Article.create(
   category_id: 1
 )
 
-AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?
-
+AdminUser.create!(email: 'support@alveohive.com', password: 'Hive@Alveo33', password_confirmation: 'Hive@Alveo33') if Rails.env.production?
 
 # default currency conversion rates
-Currency.create(name: 'USD', conversion_rates: { 'GBP' => 1.22, 'EUR' => 0.95, 'GHS' => 11.78 })
-Currency.create(name: 'GBP', conversion_rates: { 'USD' => 0.82, 'EUR' => 1.15, 'GHS' => 14.33 })
-Currency.create(name: 'EUR', conversion_rates: { 'USD' => 1.16, 'GBP' => 0.87, 'GHS' => 12.44 })
-Currency.create(name: 'GHS', conversion_rates: { 'USD' => 0.085, 'GBP' => 0.070, 'EUR' => 0.080 })
+Currency.create(name: 'USD', conversion_rates: { 'GBP' => 0.79, 'EUR' => 0.93, 'GHS' => 14.90 })
+Currency.create(name: 'GBP', conversion_rates: { 'USD' => 1.27, 'EUR' => 1.18, 'GHS' => 18.96 })
+Currency.create(name: 'EUR', conversion_rates: { 'USD' => 1.08, 'GBP' => 0.85, 'GHS' => 16.10 })
+Currency.create(name: 'GHS', conversion_rates: { 'USD' => 0.067, 'GBP' => 0.053, 'EUR' => 0.062 })
