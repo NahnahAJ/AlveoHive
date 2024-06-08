@@ -61,7 +61,6 @@ article4 = Article.create(
   category_id: 1
 )
 
-AdminUser.create!(email: 'support@alveohive.com', password: 'Hive@Alveo33', password_confirmation: 'Hive@Alveo33') if Rails.env.production?
 
 # default currency conversion rates
 Currency.create(name: 'USD', conversion_rates: { 'GBP' => 0.79, 'EUR' => 0.93, 'GHS' => 14.90 })
