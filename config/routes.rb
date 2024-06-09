@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  scope '/data' do
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   get '/current_user', to: 'current_user#index'
@@ -108,6 +109,7 @@ namespace :api do
       end
     end
   end
+end
 end
 end
 

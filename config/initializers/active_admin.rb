@@ -1,4 +1,5 @@
 ActiveAdmin.setup do |config|
+  config.namespace :data do |data|
   # == Site Title
   #
   # Set the title that is displayed on the main layout
@@ -270,7 +271,7 @@ ActiveAdmin.setup do |config|
   #
   # To disable/customize for the :admin namespace:
   #
-  #   config.namespace :admin do |admin|
+
   #
   #     # Disable the links entirely
   #     admin.download_links = false
@@ -282,7 +283,7 @@ ActiveAdmin.setup do |config|
   #     #   (for example, with cancan)
   #     admin.download_links = proc { can?(:view_download_links) }
   #
-  #   end
+    end
 
   # == Pagination
   #
