@@ -5,6 +5,13 @@ ActiveAdmin.setup do |config|
   # for each of the active admin pages.
   #
   config.site_title = "Alveo Hive Admin"
+  
+  # Set asset prefix
+  config.asset_host = '/data'
+
+  # Set route prefix
+  config.default_namespace = 'data/admin'
+
   # config.paginate = :will_paginate
 
   # Set the link url for the title. For example, to take
