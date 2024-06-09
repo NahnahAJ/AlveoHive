@@ -5,12 +5,8 @@ ActiveAdmin.setup do |config|
   # for each of the active admin pages.
   #
   config.site_title = "Alveo Hive Admin"
+  config.relative_url_root = "/data"
 
-  config.before_action do
-    if request.path_info.start_with?('/data')
-      request.path_info.sub!('/data', '')
-    end
-  end
   # config.paginate = :will_paginate
 
   # Set the link url for the title. For example, to take
