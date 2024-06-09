@@ -19,7 +19,6 @@ Rails.application.routes.draw do
         end
       end
     end
-  end
 
     # successful payment handling
     post '/payments/success', to: 'payments#success'
