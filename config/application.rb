@@ -20,7 +20,7 @@ module AlveoHiveApi
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
 
-    config.relative_url_root = "/data"
+    # config.relative_url_root = "/data"
 
     config.pagination_default = 30
 

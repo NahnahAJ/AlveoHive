@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
+  ActiveAdmin.routes(self)
   get '/current_user', to: 'current_user#index'
     devise_for :users, path: '', path_names: {
       sign_in: 'login',
@@ -12,7 +13,6 @@ Rails.application.routes.draw do
     }
 
     namespace :admin do
-      ActiveAdmin.routes(self)
       resources :properties do
         member do
           put :approve
