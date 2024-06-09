@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
-  ActiveAdmin.routes(self)
-  get '/current_user', to: 'current_user#index'
+  namespace :data do
+    namespace :admin do
+      ActiveAdmin.routes(self)
+    end
+  end  get '/current_user', to: 'current_user#index'
     devise_for :users, path: '', path_names: {
       sign_in: 'login',
       sign_out: 'logout',

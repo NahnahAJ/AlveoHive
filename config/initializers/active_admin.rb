@@ -5,7 +5,6 @@ ActiveAdmin.setup do |config|
   # for each of the active admin pages.
   #
   config.site_title = "Alveo Hive Admin"
-  config.default_namespace = 'data/admin'
   # config.paginate = :will_paginate
 
   # Set the link url for the title. For example, to take
