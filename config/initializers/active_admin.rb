@@ -7,8 +7,6 @@ ActiveAdmin.setup do |config|
   config.site_title = "Alveo Hive Admin"
   # config.paginate = :will_paginate
 
-  config.allow_comments = false
-
   # Set the link url for the title. For example, to take
   # users to your main site. Defaults to no link.
   #
