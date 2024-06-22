@@ -186,8 +186,8 @@ ActiveAdmin.setup do |config|
   # You can run `bin/rails runner 'puts I18n.t("date.formats")'` to see the
   # available formats in your application.
   #
-  config.localize_format = :
-  
+  config.localize_format = :long
+
   # Specify the custom registrations controller
   config.register_controller :registrations, 'admin/admin_users/registrations'
 
