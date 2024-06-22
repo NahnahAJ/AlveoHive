@@ -11,11 +11,11 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.secrets.email_address,
-    port: Rails.application.secrets.email_port,
-    domain: Rails.application.secrets.email_domain,
-    user_name: Rails.application.secrets.email_user_name,
-    password: Rails.application.secrets.email_password,
+    address: ENV["email_address"],
+    port: ENV["email_port"],
+    domain: ENV["email_domain"],
+    user_name: ENV["email_user_name"],
+    password: ENV["email_password"],
     authentication: :login,
     enable_starttls_auto: true,
     ssl: true
