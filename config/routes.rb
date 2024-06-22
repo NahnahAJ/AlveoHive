@@ -1,7 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :admin_users, ActiveAdmin::Devise.config, controllers: {
-    registrations: 'admin/admin_users/registrations'
-  }
+  devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   get '/current_user', to: 'current_user#index'
     devise_for :users, path: '', path_names: {

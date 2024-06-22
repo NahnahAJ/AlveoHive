@@ -188,9 +188,6 @@ ActiveAdmin.setup do |config|
   #
   config.localize_format = :long
 
-  # Specify the custom registrations controller
-  config.register_controller :registrations, 'admin/admin_users/registrations'
-
   # == Setting a Favicon
   #
   # config.favicon = 'favicon.ico'
