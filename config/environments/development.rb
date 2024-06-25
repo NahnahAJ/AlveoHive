@@ -18,8 +18,6 @@ Rails.application.configure do
   # Enable server timing
   config.server_timing = true
 
-  config.action_mailer.default_url_options = { host: 'localhost', port: 4000 }
-
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
@@ -37,7 +35,7 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
 
   config.action_mailer.perform_caching = false
 
@@ -61,18 +59,17 @@ Rails.application.configure do
   # TODO: Configure for PRODUCTION as well
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.secrets.email_address,
-    port: Rails.application.secrets.email_port,
-    domain: Rails.application.secrets.email_domain,
-    user_name: Rails.application.secrets.email_user_name,
-    password: Rails.application.secrets.email_password,
-    authentication: :login,
+    address: 'smtp.sendgrid.net',
+    port: 587,
+    domain: 'alveohive.com',
+    user_name: 'apikey',
+    password: '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',
+    authentication: :plain,
     enable_starttls_auto: true,
-    ssl: true
   }
-  config.action_mailer.default_url_options = { host: 'localhost:4000' }
-
-
+  
+  
+  config.action_mailer.default_url_options = { host: 'http://localhost:3  000' }
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true

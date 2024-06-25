@@ -14,7 +14,7 @@ Devise.setup do |config|
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  # config.secret_key = '4b6e9255a731073bb5f9875ed8539bb8f26ebfc9154af48fd2f8ddae6faa904243847036d6aa4130eb4c2f7ff7cbb46b5dc7aa72061d74740f6eadef4543269a'
+  # config.secret_key = '1f93853284e7b42f63774998eef81c7fefcfee14fc502a81378d545115f57096440532f03a821c4917e3b266556d78c79bcd1b0d6e53b35124bf5f0229828ed4'
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
@@ -24,11 +24,11 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = 'please-change-me-at-config-initializers-devise@example.com'
+  # config.mailer_sender = 'AlveoHive'
 
   # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
-
+  config.mailer = 'UserMailer'
+  
   # Configure the parent class responsible to send e-mails.
   # config.parent_mailer = 'ActionMailer::Base'
 
@@ -219,7 +219,7 @@ Devise.setup do |config|
   # ==> Configuration for :recoverable
   #
   # Defines which key will be used when recovering the password for an account
-  # config.reset_password_keys = [:email]
+  config.reset_password_keys = [:email]
 
   # Time interval you can reset your password with a reset password key.
   # Don't put a too small interval or your users won't have the time to

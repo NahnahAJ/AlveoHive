@@ -272,6 +272,7 @@ GEM
     ruby-vips (2.2.0)
       ffi (~> 1.12)
     ruby2_keywords (0.0.5)
+    ruby_http_client (3.5.5)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc-rails (2.1.2)
@@ -280,6 +281,8 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
+    sendgrid-ruby (6.7.0)
+      ruby_http_client (~> 3.4)
     sidekiq (7.2.1)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
@@ -327,7 +330,7 @@ DEPENDENCIES
   activeadmin
   bootsnap
   cancancan
-  carrierwave (= 2.1.0)
+  carrierwave
   country-select
   debug
   devise
@@ -337,6 +340,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   jsonapi-serializer
   kaminari
+  mail
   mini_magick (= 4.11.0)
   pg (~> 1.1)
   puma (~> 5.0)
@@ -344,6 +348,7 @@ DEPENDENCIES
   rails (~> 7.0.8)
   rest-client
   sassc-rails
+  sendgrid-ruby
   sidekiq
   sprockets-rails
   streamio-ffmpeg
