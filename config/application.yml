@@ -1,0 +1,4 @@
+DEFAULT_FROM_EMAIL: 'support@alveohive.com'
+FRONTEND_APP_HOST: 'http://localhost:3000'
+# SMTP_USERNAME: 'your-email@example.com'
+# SMTP_PASSWORD: 'your-email-password'
