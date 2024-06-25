@@ -15,190 +15,10 @@ module Api
 
       #################### Property begins #########################
 
-      # GET /api/v1/properties
-      def index
-        # @properties = Property.all
-        @properties = Property.order(created_at: :desc).page(params[:page]).per(params[:per_page] || 30)
-        serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
-        # render json: serialized_properties
-        render json: {
-          properties: serialized_properties,
-          total_pages: @properties.total_pages,
-          total_items: @properties.total_count
-        }
-        
-      end
-
-      # GET /api/v1/users/:id/properties (for listing all the properties of a particular user)
-      def user_properties
-        @user_properties = Property.where(user_id: params[:user_id]).order(created_at: :desc)
-      
-        if @user_properties.present?
-          serialized_properties = @user_properties.map { |property| serialize_property_with_media(property) }
-          render json: serialized_properties
-        else
-          render json: { error: "No property found for user with ID #{params[:user_id]}" }, status: :not_found
-        end
-      end
-
-      # GET /api/v1/properties/:id/export_pdf
-      def export_pdf
-        @property = Property.find(params[:id])
-
-        if @property.is_property_live?
-          @amenities = @property.amenities
-          @image_urls = []
-
-          # Generate full URLs for the images
-          @property.images.limit(5).each do |image|
-            image_path = rails_blob_url(image, only_path: true)
-            #full_url = "#{"http://localhost:3000"}#{image_path}"
-            @image_urls << image_path
-          end
-
-          html_content = ActionController::Base.new.render_to_string(
-            template: "export_pdf",
-            locals: { property: @property, amenities: @amenities, image_urls: @image_urls, property_url: api_v1_property_url(@property) },
-            layout: "pdf_layout"
-          )
-
-
-          
-          pdf = WickedPdf.new.pdf_from_string(html_content)
-
-          send_data(pdf, filename: @property.name + '.pdf', type: 'application/pdf', disposition: 'inline')
-        else
-          render json: { message: 'Cannot export pdf as this property has not yet been approved for listing.' }, status: :unprocessable_entity
-        end
-      end
-
-      # GET /api/v1/properties/:id/export_hyperlink
-      def export_hyperlink
-        @property = Property.find(params[:id])
-
-        if @property.is_property_live?
-          render json: { hyperlink: api_v1_property_url(@property) }
-        else
-          render json: { message: 'Cannot return hyperlink as this property has not yet been approved for listing.' }, status: :unprocessable_entity
-        end
-      end
-
-      # GET /api/v1/properties/:id
-      def show
-        properties = Property.where(id: params[:id], is_property_live: true)
-
-        if properties.present?
-          serialized_properties = properties.map { |property| serialize_property_with_media(property) }
-          render json: serialized_properties
-        else
-          render json: { error: "Property with ID #{params[:id]} not found" }, status: :not_found
-        end
-      end
-
-      # POST /api/v1/properties
-      def create
-        @property = Property.new(property_params)
-        handle_file_uploads
-
-        user_id = property_params[:user_id]
-        user = User.find_by(id: user_id)
-        user_details = UserDetail.find_by(user_id: user_id)
-
-        subscription_status = user_details&.subscription
-        last_subscription_date = user_details&.last_subscription_date
-        # live_properties_count = Property.where(user_id: user_id, is_property_live: true).count
-        properties_count = Property.where(user_id: user_id).count
-
-        if (subscription_status == 'subscribed' && last_subscription_date.present? && last_subscription_date >= 1.year.ago) ||
-           (subscription_status != 'subscribed' && properties_count < 3)
-          if @property.save
-            render json: serialize_property_with_media(@property), status: :created
-          else
-            render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
-          end
-        else
-          render json: { message: "Please upgrade/renew your subscription for unlimited property listing." }, status: :unauthorized
-        end
-      end
-
-
-      # PATCH/PUT /api/v1/properties/:id
-      def update
-        @property = Property.find(params[:id])
-
-        handle_file_uploads
-
-        if @property.update(property_params)
-          serialized_property = @property.map { |property| serialize_property_with_media(property) }
-          render json: serialize_property
-        else
-          render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
-        end
-      end
-
-      # DELETE /api/v1/properties/:id
-      def destroy
-        @property = Property.find(params[:id])
-        @property.destroy
-        head :no_content
-      end
-
-      # GET /api/v1/properties/:id/get_images
-      def get_images
-        @property = Property.find(params[:id])
-        images_data = @property.images.map { |image| { id: image.id, url: rails_blob_url(image, only_path: true) } }
-        render json: { images: images_data }
-      end
-
-      # DELETE /api/v1/properties/:id/images/:image_id
-      def delete_image
-        image = @property.images.find(params[:image_id])
-        image.purge
-        render json: { message: 'Image deleted successfully' }
-      end
-
-      # DELETE /api/v1/properties/:id/clear_images
-      def clear_images
-        @property = Property.find(params[:id])
-        @property.images.purge
-        render json: { message: 'All images cleared successfully' }
-      end
-
-      # GET /api/v1/properties/:id/get_video
-      def get_video
-        @property = Property.find(params[:id])
-        render json: { video: video_url(@property.video) }
-      end
-
-      # DELETE /api/v1/properties/:id/delete_video
-      def delete_video
-        @property = Property.find(params[:id])
-
-        if @property.video.attached?
-          @property.video.purge
-          render json: { message: 'Video deleted successfully' }
-        else
-          render json: { message: 'No video attached to delete' }, status: :unprocessable_entity
-        end
-      end
-
-      # GET /api/v1/properties/search
-      def search
-        # Join properties with user_details to access subscription status
-        @properties = Property.joins(user: :user_detail)
-                              .where(is_property_live: true)
-                              .filter_by_params(search_params)
-                              .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
-                              .page(params[:page])
-                              .per(params[:per_page] || 30)
-
-        if @properties.empty?
-          # if no exact match is found, provide similar items as suggestions
-          similar_items = find_similar_items(search_params)
-          render json: {
-            similar_properties: similar_items
-          }, status: :not_found
-        else
+        # GET /api/v1/properties
+        def index
+          # @properties = Property.all
+          @properties = Property.order(created_at: :desc).page(params[:page]).per(params[:per_page] || 30)
           serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
           render json: {
             properties: serialized_properties,
@@ -208,17 +28,13 @@ module Api
         end
       end
 
-      # PATCH/PUT /api/v1/properties/:id/set_live
-      def set_live
-        @property = Property.find(params[:id])
-
-        if @property.is_property_live?
-          render json: { message: 'Property has already been approved for listing!' }
-        else
-          if @property.update(is_property_live: true, date_listed: Time.zone.now)
-            # Send approval email to both the user and alveohive support
-            PropertyApprovalMailer.property_approved(@property).deliver_now
-            render json: { message: 'Property is now live!' }
+        # GET /api/v1/users/:id/properties (for listing all the properties of a particular user)
+        def user_properties
+          @user_properties = Property.where(user_id: params[:user_id]).order(created_at: :desc)
+        
+          if @user_properties.present?
+            serialized_properties = @user_properties.map { |property| serialize_property_with_media(property) }
+            render json: serialized_properties
           else
             render json: { error: 'Failed to update property status' }, status: :unprocessable_entity
           end
@@ -248,18 +64,184 @@ module Api
         pending_properties = Property.where(is_property_live: false)
         serialized_properties = pending_properties.map { |property| serialize_property_with_media(property) }
 
-        render json: serialized_properties, include: {
-          amenities: {
-            only: [:fully_fitted_kitchen, :furnishing, :standby_generator, :internet_connectivity, :ac_rooms, :refridgerator, :cctv_camera, :washroom, :security_service, :tv, :gym, :others, :walled_gated, :parking_space, :living_room, :dining_room, :waste_disposal]
-          },
-          property_detail: {
-            only: [:has_room_serviced, :number_of_storeys, :pet_friendly_compound, :compound_finishing, :finishing, :bathroom_type_and_location, :year_built, :street, :payment_plan, :state_of_land, :number_of_tenants, :type_of_meter, :source_of_water, :property_needs_renovation, :smoking_allowed, :tiled_areas, :ceiling_type]
-          },
-          public_facility: {
-            only: [:schools, :hospitals, :pharmacies, :others]
-          },
-          recreational_facility: {
-            only: [:restaurants, :pubs, :gyms, :others]
+
+            
+            pdf = WickedPdf.new.pdf_from_string(html_content)
+
+            send_data(pdf, filename: @property.name + '.pdf', type: 'application/pdf', disposition: 'inline')
+          else
+            render json: { message: 'Cannot export pdf as this property has not yet been approved for listing.' }, status: :unprocessable_entity
+          end
+        end
+
+        # GET /api/v1/properties/:id/export_hyperlink
+        def export_hyperlink
+          @property = Property.find(params[:id])
+
+          if @property.is_property_live?
+            render json: { hyperlink: api_v1_property_url(@property) }
+          else
+            render json: { message: 'Cannot return hyperlink as this property has not yet been approved for listing.' }, status: :unprocessable_entity
+          end
+        end
+
+        # GET /api/v1/properties/:id
+        def show
+          properties = Property.where(id: params[:id], is_property_live: true)
+
+          if properties.present?
+            serialized_properties = properties.map { |property| serialize_property_with_media(property) }
+            render json: serialized_properties
+          else
+            render json: { error: "Property with ID #{params[:id]} not found" }, status: :not_found
+          end
+        end
+
+        # POST /api/v1/properties
+        def create
+          @property = Property.new(property_params)
+          handle_file_uploads
+
+          user_id = property_params[:user_id]
+          user = User.find_by(id: user_id)
+          user_details = UserDetail.find_by(user_id: user_id)
+
+          subscription_status = user_details&.subscription
+          last_subscription_date = user_details&.last_subscription_date
+          # live_properties_count = Property.where(user_id: user_id, is_property_live: true).count
+          properties_count = Property.where(user_id: user_id).count
+
+          if (subscription_status == 'subscribed' && last_subscription_date.present? && last_subscription_date >= 1.year.ago) ||
+             (subscription_status != 'subscribed' && properties_count < 3)
+            if @property.save
+              render json: serialize_property_with_media(@property), status: :created
+            else
+              render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
+            end
+          else
+            render json: { message: "Please upgrade/renew your subscription for unlimited property listing." }, status: :unauthorized
+          end
+        end
+
+
+        # PATCH/PUT /api/v1/properties/:id
+        def update
+          @property = Property.find(params[:id])
+
+          handle_file_uploads
+
+          if @property.update(property_params)
+            serialized_property = @property.map { |property| serialize_property_with_media(property) }
+            render json: serialize_property
+          else
+            render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+
+        # DELETE /api/v1/properties/:id
+        def destroy
+          @property = Property.find(params[:id])
+          @property.destroy
+          head :no_content
+        end
+
+        # GET /api/v1/properties/:id/get_images
+        def get_images
+          @property = Property.find(params[:id])
+          images_data = @property.images.map { |image| { id: image.id, url: rails_blob_url(image, only_path: true) } }
+          render json: { images: images_data }
+        end
+
+        # DELETE /api/v1/properties/:id/images/:image_id
+        def delete_image
+          image = @property.images.find(params[:image_id])
+          image.purge
+          render json: { message: 'Image deleted successfully' }
+        end
+
+        # DELETE /api/v1/properties/:id/clear_images
+        def clear_images
+          @property = Property.find(params[:id])
+          @property.images.purge
+          render json: { message: 'All images cleared successfully' }
+        end
+
+        # GET /api/v1/properties/:id/get_video
+        def get_video
+          @property = Property.find(params[:id])
+          render json: { video: video_url(@property.video) }
+        end
+
+        # DELETE /api/v1/properties/:id/delete_video
+        def delete_video
+          @property = Property.find(params[:id])
+
+          if @property.video.attached?
+            @property.video.purge
+            render json: { message: 'Video deleted successfully' }
+          else
+            render json: { message: 'No video attached to delete' }, status: :unprocessable_entity
+          end
+        end
+
+        # GET /api/v1/properties/search
+        def search
+          # Join properties with user_details to access subscription status
+          @properties = Property.joins(user: :user_detail)
+                                .where(is_property_live: true)
+                                .filter_by_params(search_params)
+                                .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
+                                .page(params[:page])
+                                .per(params[:per_page] || 30)
+
+          if @properties.empty?
+            # if no exact match is found, provide similar items as suggestions
+            similar_items = find_similar_items(search_params)
+            render json: {
+              similar_properties: similar_items
+            }, status: :not_found
+          else
+            serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
+            render json: {
+              properties: serialized_properties,
+              total_pages: @properties.total_pages,
+              total_items: @properties.total_count
+            }
+          end
+        end
+
+        # PATCH/PUT /api/v1/properties/:id/set_live
+        def set_live
+          @property = Property.find(params[:id])
+
+          if @property.is_property_live?
+            render json: { message: 'Property has already been approved for listing!' }
+          else
+            if @property.update(is_property_live: true, date_listed: Time.zone.now)
+              # Send approval email to both the user and alveohive support
+              PropertyApprovalMailer.property_approved(@property).deliver_now
+              render json: { message: 'Property is now live!' }
+            else
+              render json: { error: 'Failed to update property status' }, status: :unprocessable_entity
+            end
+          end
+        end
+
+        # returns a list of all properties that have been approved for listing
+        # GET /api/v1/properties/live_properties
+        def live_properties
+          live_properties = Property.joins(user: :user_detail)
+                                    .where(is_property_live: true)
+                                    .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
+                                    .page(params[:page])
+                                    .per(params[:per_page] || 30)
+
+          serialized_properties = live_properties.map { |property| serialize_property_with_media(property) }
+
+          render json: {
+            properties: serialized_properties,
+            total_pages: live_properties.total_pages,
+            total_items: live_properties.total_count
           }
         }
       end
