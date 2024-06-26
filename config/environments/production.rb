@@ -9,18 +9,6 @@ Rails.application.configure do
 
   #config.active_storage.replace_on_assign_to_many = false
 
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: ENV["email_address"],
-    port: ENV["email_port"],
-    domain: ENV["email_domain"],
-    user_name: ENV["email_user_name"],
-    password: ENV["email_password"],
-    authentication: :login,
-    enable_starttls_auto: true,
-    ssl: true
-  }
-
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.
@@ -91,6 +79,21 @@ Rails.application.configure do
   # Use a different logger for distributed setups.
   # require "syslog/logger"
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new "app-name")
+
+  config.action_mailer.perform_deliveries = true
+
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: ENV['EMAIL_ADDRESS'],
+    port: ENV['EMAIL_PORT'],
+    domain: ENV['EMAIL_DOMAIN'],
+    user_name: ENV['EMAIL_USERNAME'],
+    password: ENV['EMAIL_PASSWORD'],
+    authentication: "plain",
+    enable_starttls_auto: true,
+    openssl_verify_mode: 'none'
+  }
+  config.action_mailer.default_url_options = { host: 'alveocentral.com' }
 
   if ENV["RAILS_LOG_TO_STDOUT"].present?
     logger           = ActiveSupport::Logger.new(STDOUT)
