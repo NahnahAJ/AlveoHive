@@ -45,3 +45,6 @@
 
 # Ignore .env file
 /.env
+/config/master.key
+sendgrid.env
+sendgrid.env

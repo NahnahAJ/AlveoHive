@@ -16,9 +16,11 @@ gem 'activerecord-postgresql-adapter'
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.0"
 
+gem 'sendgrid-ruby'
+
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
-
+gem 'mail'
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 
