@@ -1,5 +1,5 @@
 class UserMailer < ApplicationMailer
-    default from: 'support@alveohive.com'
+    default from: ENV['EMAIL_USERNAME'] || 'support@alveohive.com'
     before_action :add_inline_attachments!
   
     def reset_password_instructions(record, token, opts={})

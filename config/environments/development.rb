@@ -54,23 +54,36 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
+  config.action_mailer.perform_deliveries = true
+
   # config.active_storage.replace_on_assign_to_many = false
 
   # TODO: Configure for PRODUCTION as well
+  # config.action_mailer.delivery_method = :smtp
+  # config.action_mailer.smtp_settings = {
+  #   address: 'smtp.sendgrid.net',
+  #   port: 587,
+  #   domain: 'alveohive.com',
+  #   user_name: 'apikey',
+  #   password: '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',
+  #   authentication: :plain,
+  #   enable_starttls_auto: true,
+  # }
+
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'smtp.sendgrid.net',
-    port: 587,
-    domain: 'alveohive.com',
-    user_name: 'apikey',
-    password: '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',
-    authentication: :plain,
+    address: ENV['EMAIL_ADDRESS'],
+    port: ENV['EMAIL_PORT'],
+    domain: ENV['EMAIL_DOMAIN'],
+    user_name: ENV['EMAIL_USERNAME'],
+    password: ENV['EMAIL_PASSWORD'],
+    authentication: "plain",
     enable_starttls_auto: true,
+    openssl_verify_mode: 'none'
   }
+  config.action_mailer.default_url_options = { host: 'localhost:4000' }
   
   
-  config.action_mailer.default_url_options = { host: 'http://localhost:3  000' }
-
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 

@@ -112,6 +112,7 @@ module Api
            (subscription_status != 'subscribed' && properties_count < 3)
           if @property.save
             render json: serialize_property_with_media(@property), status: :created
+            PropertyApprovalMailer.property_submitted_for_review(@property).deliver_now
           else
             render json: { errors: @property.errors.full_messages }, status: :unprocessable_entity
           end

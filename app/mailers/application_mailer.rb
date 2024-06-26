@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: Rails.application.secrets.email_user_name
+  default from: ENV['EMAIL_USERNAME'] || "support@alveohive.com"
   layout "mailer"
 end
