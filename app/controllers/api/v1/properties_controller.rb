@@ -188,8 +188,12 @@ module Api
         @properties = Property.joins(user: :user_detail)
                               .where(is_property_live: true)
                               .filter_by_params(search_params)
-                              .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
-                              .page(params[:page])
+                              .order(Arel.sql("CASE 
+                              WHEN user_details.subscription = 'subscribed' 
+                               AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' 
+                              THEN 0 
+                              ELSE 1 
+                              END, properties.created_at DESC")).page(params[:page])
                               .per(params[:per_page] || 30)
 
         if @properties.empty?
