@@ -9,6 +9,17 @@ Rails.application.configure do
 
   #config.active_storage.replace_on_assign_to_many = false
 
+  # Enable caching in production
+  config.action_controller.perform_caching = true
+
+  # Use memory store for caching
+  config.cache_store = :memory_store
+
+  # Set Cache-Control headers for public file server
+  config.public_file_server.headers = {
+    "Cache-Control" => "public, max-age=#{2.days.to_i}"
+  }
+
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.
