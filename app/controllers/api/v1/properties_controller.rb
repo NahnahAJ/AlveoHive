@@ -675,8 +675,8 @@ module Api
           serialized_property[:video] = video_url(property.video)
         end
 
-        # Set cache control headers for 15 minutes
-        expires_in 15.minutes, public: true
+        # Set cache control headers for 2 minutes
+        expires_in 2.minutes, public: true
 
         serialized_property
       end               
