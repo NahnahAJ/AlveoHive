@@ -191,7 +191,7 @@ module Api
                                 # .order(
                                 #   Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC")
                                 # )
-                                .order(created_at: :desc)
+                                .order("properties.created_at DESC")
                                 .page(params[:page])
                                 .per(params[:per_page] || 30)
 
