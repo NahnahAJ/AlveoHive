@@ -27,46 +27,67 @@ class Property < ApplicationRecord
 
     result = result.where(category_id: params[:category_id]) if params[:category_id].present?
     result = result.where("LOWER(location) LIKE ?", "%#{params[:location].downcase}%") if params[:location].present?
-    result = result.where("LOWER(property_status) = ?", params[:property_status].downcase) if params[:property_status].present?
+    result = result.where("LOWER(property_status) = ?", params[:property_status].downcase) if params[:property_status].present?  
     result = result.where(number_of_bedrooms: params[:number_of_bedrooms]) if params[:number_of_bedrooms].present?
     result = result.where(number_of_bathrooms: params[:number_of_bathrooms]) if params[:number_of_bathrooms].present?
     result = result.where(ratings: params[:ratings]) if params[:ratings].present?
     result = result.where("LOWER(furnishing) LIKE ?", "%#{params[:furnishing].downcase}%") if params[:furnishing].present?
-    result = result.where("LOWER(property_type) = ?", params[:property_type].downcase) if params[:property_type].present?
+    result = result.where("LOWER(property_type) = ?", params[:property_type].downcase) if params[:property_type].present?  
+
 
     if params[:price].present? && params[:currency].present?
       price_range = params[:price].map(&:to_i)
       specified_currency = params[:currency].upcase
 
+      # Get unique currencies for the properties that match other search criteria
       unique_currencies = result.distinct.pluck(:currency)
 
       if unique_currencies.include?(specified_currency)
+        # If the specified currency is present in the retrieved currencies, no need for conversion
         result = result.where(price: price_range[0]..price_range[1])
       else
+        # Fetch conversion rates from the database
         if unique_currencies.present?
           currency_record = Currency.find_by(name: specified_currency)
           conversion_rates = currency_record&.conversion_rates || {}
-
+        
+          # Build a dynamic SQL expression for price conversion
           conversion_expression = unique_currencies.map do |currency|
             conversion_rate = conversion_rates[currency] || 1.0
             "(CASE WHEN currency = '#{specified_currency}' THEN price ELSE price * #{conversion_rate} END)"
           end.join(' + ')
-
+        
+          # Use the dynamic expression in the query
           result = result.where("#{conversion_expression} BETWEEN ? AND ?", price_range[0], price_range[1])
         else
+          # If unique_currencies is empty, set a default condition
           result = result.where("price BETWEEN ? AND ?", price_range[0], price_range[1])
         end
       end
+    # If currency is not specified, perform currency and price comparison using 'GHS' as the default currency
     elsif params[:price].present?
+      puts "Currency is not specified, performing currency and price comparison"
+
       price_range = params[:price].map(&:to_i)
+      
+      # Filter properties that are live
       result = result.where(is_property_live: true)
+
+      # Get unique currencies in the database
       unique_currencies = result.distinct.pluck(:currency)
+
+      # Fetch conversion rates from the database
       conversion_rates = Currency.all.pluck(:name, :conversion_rates).to_h
+
+      # Default conversion rate (same currency)
       default_conversion_rate = 1.0
 
+      # Build a dynamic SQL query
       or_conditions = unique_currencies.map do |currency|
+        # Set the conversion rate based on the property's currency
         conversion_rate = currency.upcase == 'GHS' ? default_conversion_rate : conversion_rates.dig(currency.upcase, 'GHS')
 
+        # Create OR conditions
         result.where(
           "currency = ? AND price * ? BETWEEN ? AND ?",
           currency,
@@ -76,8 +97,10 @@ class Property < ApplicationRecord
         )
       end
 
+      # Include properties with the default currency (GHS)
       or_conditions << result.where(currency: 'GHS', price: price_range[0]..price_range[1])
 
+      # Combine all OR conditions
       result = or_conditions.inject(:or)
     end
 
