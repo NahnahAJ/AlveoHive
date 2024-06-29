@@ -185,18 +185,25 @@ module Api
       # GET /api/v1/properties/search
       def search
         # Join properties with user_details to access subscription status
+        # @properties = Property.joins(user: :user_detail)
+        #                       .where(is_property_live: true)
+        #                       .filter_by_params(search_params)
+        #                       .order(created_at: :desc)
+        #                       .page(params[:page])
+        #                       .per(params[:per_page] || 30)
+        #                       # .order(Arel.sql("CASE 
+        #                       # WHEN user_details.subscription = 'subscribed' 
+        #                       #  AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' 
+        #                       # THEN 0 
+        #                       # ELSE 1 
+        #                       # END, properties.created_at DESC"))
+
         @properties = Property.joins(user: :user_detail)
-                              .where(is_property_live: true)
-                              .filter_by_params(search_params)
-                              .order(created_at: :desc)
-                              .page(params[:page])
-                              .per(params[:per_page] || 30)
-                              # .order(Arel.sql("CASE 
-                              # WHEN user_details.subscription = 'subscribed' 
-                              #  AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' 
-                              # THEN 0 
-                              # ELSE 1 
-                              # END, properties.created_at DESC"))
+        .where(is_property_live: true)
+        .filter_by_params(search_params)
+        .order(Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC"))
+        .page(params[:page])
+        .per(params[:per_page] || 30)
 
         if @properties.empty?
           # if no exact match is found, provide similar items as suggestions
