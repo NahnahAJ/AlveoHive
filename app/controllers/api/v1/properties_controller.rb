@@ -182,64 +182,34 @@ module Api
         end
       end
 
-      # GET /api/v1/properties/search
-      def search
-        # Join properties with user_details to access subscription status
-        # @properties = Property.joins(user: :user_detail)
-        #                       .where(is_property_live: true)
-        #                       .filter_by_params(search_params)
-        #                       # .order(created_at: :desc)
-        #                       .page(params[:page])
-        #                       .per(params[:per_page] || 30)
-        #                       # .order(Arel.sql("CASE 
-        #                       # WHEN user_details.subscription = 'subscribed' 
-        #                       #  AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' 
-        #                       # THEN 0 
-        #                       # ELSE 1 
-        #                       # END, properties.created_at DESC"))
+        # GET /api/v1/properties/search
+        def search
+          # Join properties with user_details to access subscription status
+          @properties = Property.joins(user: :user_detail)
+                                .where(is_property_live: true)
+                                .filter_by_params(search_params)
+                                # .order(
+                                #   Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC")
+                                # )
+                                .order(created_at: :desc)
+                                .page(params[:page])
+                                .per(params[:per_page] || 30)
 
-        # @properties = Property.filter_by_params(
-        #   search_params
-        # ).includes(:amenities).where(is_property_live: true)
-
-        @properties = Property.filter_by_params(search_params)
-        # .joins(user: :user_detail)
-        .where(is_property_live: true)
-        # .order(created_at: :desc)
-        .page(params[:page])
-        .per(params[:per_page] || 30)
-
-        if @properties.empty?
-          # if no exact match is found, provide similar items as suggestions
-          similar_items = find_similar_items(search_params)
-          render json: {
-            similar_properties: similar_items
-          }, status: :not_found
-        else
-          serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
-          render json: {
-            properties: serialized_properties,
-            total_pages: @properties.total_pages,
-            total_items: @properties.total_count
-          }
+          if @properties.empty?
+            # if no exact match is found, provide similar items as suggestions
+            similar_items = find_similar_items(search_params)
+            render json: {
+              similar_properties: similar_items
+            }, status: :not_found
+          else
+            serialized_properties = @properties.map { |property| serialize_property_with_media(property) }
+            render json: {
+              properties: serialized_properties,
+              total_pages: @properties.total_pages,
+              total_items: @properties.total_count
+            }
+          end
         end
-      end
-
-      def order_properties_by_subscription_and_date
-        properties_table = Property.arel_table
-        user_details_table = UserDetail.arel_table
-    
-        subscription_case = Arel::Nodes::Case.new
-          .when(
-            user_details_table[:subscription].eq('subscribed')
-            .and(user_details_table[:last_subscription_date].gteq(1.year.ago))
-          )
-          .then(0)
-          .else(1)
-    
-        order_clause = subscription_case.asc.then(properties_table[:created_at].desc)
-        Arel.sql(order_clause.to_sql)
-      end
 
       # PATCH/PUT /api/v1/properties/:id/set_live
       def set_live
