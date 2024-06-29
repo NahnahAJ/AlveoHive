@@ -223,13 +223,16 @@ module Api
 
       def order_properties_by_subscription_and_date
         subscription_case = Arel::Nodes::Case.new
-          .when(UserDetail.arel_table[:subscription].eq('subscribed')
-          .and(UserDetail.arel_table[:last_subscription_date].gteq(1.year.ago)))
+          .when(
+            UserDetail.arel_table[:subscription].eq('subscribed')
+            .and(UserDetail.arel_table[:last_subscription_date].gteq(1.year.ago))
+          )
           .then(0)
           .else(1)
-        
-        order_clause = Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC")
-        Property.arel_table.create_ordering(subscription_case).then(Property.arel_table[:created_at].desc)
+    
+        # Generate the order SQL string
+        ordering_sql = subscription_case.to_sql + ", properties.created_at DESC"
+        Arel.sql(ordering_sql)
       end
 
       # PATCH/PUT /api/v1/properties/:id/set_live
