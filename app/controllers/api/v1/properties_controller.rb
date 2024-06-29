@@ -186,18 +186,19 @@ module Api
         def search
           # Join properties with user_details to access subscription status
           @properties = Property.joins(user: :user_detail)
-                                .where(is_property_live: true)
-                                .filter_by_params(search_params)
-                                # .order(
-                                #   Arel.sql("CASE WHEN user_details.subscription = 'subscribed' AND user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' THEN 0 ELSE 1 END, properties.created_at DESC")
-                                # )
-                                # .order(created_at: :desc)
-                                .page(params[:page])
-                                .per(params[:per_page] || 30)
-
-          if @properties.present?
-            @properties = @properties.to_a.sort_by { |prop| prop.created_at }.reverse
-          end
+          .where(is_property_live: true)
+          .filter_by_params(search_params)
+          .order(
+            Arel.sql("CASE 
+                       WHEN user_details.subscription = 'subscribed' AND 
+                            user_details.last_subscription_date >= '#{1.year.ago.to_s(:db)}' 
+                       THEN 0 
+                       ELSE 1 
+                     END, properties.created_at DESC")
+          )
+          .page(params[:page])
+          .per(params[:per_page] || 30)
+          .left_outer_joins(:user_detail)
 
           if @properties.empty?
             # if no exact match is found, provide similar items as suggestions
