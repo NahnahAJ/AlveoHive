@@ -1,3 +1,70 @@
-Your property <%= @property.name %> has been submitted for review on AlveoHive.
-
-We will review it shortly. Thank you for using AlveoHive.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Property Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        .email-container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .property-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+            text-align: center;
+        }
+        .footer img {
+            width: 100px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">🎉 Property Submission Received! 🎉</div>
+        <div class="message">
+            Hi there,
+            <br><br>
+            Your property <span class="property-name"><%= @property.name %></span> has been successfully submitted for review on <strong>AlveoHive</strong>. 🏡✨
+            <br><br>
+            Our team will review it shortly, and you'll be notified once it's approved. 🚀
+            <br><br>
+            Thank you for choosing <strong>AlveoHive</strong> to showcase your property. We appreciate your trust in us. 🙏
+            <br><br>
+            Best regards,
+            <br>
+            The AlveoHive Team
+        </div>
+        <div class="footer">
+            © <%= Time.now.year %> AlveoHive. All rights reserved.
+            <br>
+            <img src="alveohive_logo.png" alt="AlveoHive Logo">
+        </div>
+    </div>
+</body>
+</html>
